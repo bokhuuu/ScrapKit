@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-abstract class Controller
-{
-    //
-}
+/**
+ * Base controller class for all HTTP controllers.
+ */
+abstract class Controller {}

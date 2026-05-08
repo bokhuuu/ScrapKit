@@ -6,6 +6,11 @@ namespace App\Scrapers\Profiles;
 
 use App\Scrapers\Base\AbstractScraperProfile;
 
+/**
+ * Scraper profile for list.am : Armenia's largest classifieds platform.
+ * Targets the Apartments for Sale category (category/60) in Yerevan.
+ * Used for Colliers International market entry research.
+ */
 class ListAmProfile extends AbstractScraperProfile
 {
     public function getName(): string
@@ -18,16 +23,35 @@ class ListAmProfile extends AbstractScraperProfile
         return 'https://www.list.am';
     }
 
+    /**
+     * list.am is sensitive to rapid requests. 3 seconds prevents IP bans.
+     */
+    public function getRequestDelay(): int
+    {
+        return 3;
+    }
+
+    /**
+     * list.am uses path-based pagination: /category/60/1, /category/60/2
+     */
     public function getIndexUrlPattern(): string
     {
         return 'https://www.list.am/category/60/{page}';
     }
 
+    /**
+     * 50 pages × ~20 listings = ~1000 apartments per run.
+     * Sufficient for district-level price analysis.
+     */
     public function getMaxPages(): int
     {
         return 50;
     }
 
+    /**
+     * Selectors discovered via DevTools inspection of list.am/category/60.
+     * div.gl = card container, div.p = price, div.at = location + specs.
+     */
     public function getIndexSelectors(): array
     {
         return [
@@ -39,6 +63,11 @@ class ListAmProfile extends AbstractScraperProfile
         ];
     }
 
+    /**
+     * Selectors for the individual listing detail page.
+     * span[itemprop="price"][content] gives clean numeric value
+     * without parsing the formatted "$750,000" string.
+     */
     public function getDetailSelectors(): array
     {
         return [

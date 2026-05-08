@@ -7,18 +7,35 @@ namespace App\Scrapers\Base;
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 
+/**
+ * Default implementations for methods common across all scraper profiles.
+ * Concrete profiles extend this and override only what differs.
+ */
 abstract class AbstractScraperProfile implements ScraperProfileInterface
 {
+    /**
+     * Most sites are public - no auth required by default.
+     * Override in profiles that require login (e.g. to reveal phone numbers).
+     */
     public function getAuthStrategy(): ?AuthStrategyInterface
     {
         return null;
     }
 
+    /**
+     * Two seconds is polite for most sites.
+     * Override in profiles where the site is more sensitive to rapid requests.
+     */
     public function getRequestDelay(): int
     {
         return 2;
     }
 
+    /**
+     * Standard desktop browser configuration.
+     * 1920x1080 ensures sites render their full desktop layout.
+     * User agent mimics real Chrome to avoid bot detection.
+     */
     public function getBrowserConfig(): array
     {
         return [
@@ -28,11 +45,20 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
         ];
     }
 
+    /**
+     * Excel for client deliverables, JSON for API/integration use.
+     * Override to change export formats per project.
+     */
     public function getExports(): array
     {
         return ['excel', 'json'];
     }
 
+    /**
+     * Default pipeline handles normalization, validation,
+     * price/area cleaning and deduplication.
+     * Override to add site-specific stages (e.g. CleanMileageStage for MyAuto).
+     */
     public function getPipelineStages(): array
     {
         return [
