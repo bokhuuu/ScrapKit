@@ -1,0 +1,171 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\DTOs;
+
+use Carbon\Carbon;
+
+final class ListingDTO
+{
+    public function __construct(
+        public readonly string $externalId,
+        public readonly string $url,
+        public readonly string $sourceProfileName,
+
+        public readonly string $listingType,
+        public readonly string $propertyType,
+
+        public readonly ?float $price,
+        public readonly ?string $currency,
+        public readonly ?float $pricePerSqm,
+
+        public readonly ?float $area,
+        public readonly ?float $livingArea,
+        public readonly ?float $kitchenArea,
+
+        public readonly ?int $rooms,
+        public readonly ?int $floor,
+        public readonly ?int $totalFloors,
+        public readonly ?int $yearBuilt,
+        public readonly ?float $ceilingHeight,
+        public readonly ?string $buildingType,
+        public readonly ?string $condition,
+        public readonly ?bool $isNewBuilding,
+
+        public readonly ?bool $hasBalcony,
+        public readonly ?bool $hasFurniture,
+        public readonly ?bool $hasElevator,
+        public readonly ?bool $hasParking,
+        public readonly ?bool $hasGarage,
+
+        public readonly ?string $country,
+        public readonly ?string $city,
+        public readonly ?string $district,
+        public readonly ?string $address,
+        public readonly ?float $latitude,
+        public readonly ?float $longitude,
+
+        public readonly ?string $phone,
+
+        public readonly array $imageUrls,
+
+        public readonly ?string $title,
+        public readonly ?string $description,
+        public readonly ?bool $isAgency,
+        public readonly ?Carbon $listedAt,
+        public readonly Carbon $scrapedAt,
+    ) {}
+
+    /**
+     * Create a ListingDTO from a raw associative array.
+     * Used by scrapers after extracting raw page data.
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            externalId: $data['external_id'],
+            url: $data['url'],
+            sourceProfileName: $data['source_profile_name'],
+
+            listingType: $data['listing_type'],
+            propertyType: $data['property_type'],
+
+            price: isset($data['price']) ? (float) $data['price'] : null,
+            currency: $data['currency'] ?? null,
+            pricePerSqm: isset($data['price_per_sqm']) ? (float) $data['price_per_sqm'] : null,
+
+            area: isset($data['area']) ? (float) $data['area'] : null,
+            livingArea: isset($data['living_area']) ? (float) $data['living_area'] : null,
+            kitchenArea: isset($data['kitchen_area']) ? (float) $data['kitchen_area'] : null,
+
+            rooms: isset($data['rooms']) ? (int) $data['rooms'] : null,
+            floor: isset($data['floor']) ? (int) $data['floor'] : null,
+            totalFloors: isset($data['total_floors']) ? (int) $data['total_floors'] : null,
+            yearBuilt: isset($data['year_built']) ? (int) $data['year_built'] : null,
+            ceilingHeight: isset($data['ceiling_height']) ? (float) $data['ceiling_height'] : null,
+            buildingType: $data['building_type'] ?? null,
+            condition: $data['condition'] ?? null,
+            isNewBuilding: $data['is_new_building'] ?? null,
+
+            hasBalcony: $data['has_balcony'] ?? null,
+            hasFurniture: $data['has_furniture'] ?? null,
+            hasElevator: $data['has_elevator'] ?? null,
+            hasParking: $data['has_parking'] ?? null,
+            hasGarage: $data['has_garage'] ?? null,
+
+            country: $data['country'] ?? null,
+            city: $data['city'] ?? null,
+            district: $data['district'] ?? null,
+            address: $data['address'] ?? null,
+            latitude: isset($data['latitude']) ? (float) $data['latitude'] : null,
+            longitude: isset($data['longitude']) ? (float) $data['longitude'] : null,
+
+            phone: $data['phone'] ?? null,
+
+            imageUrls: $data['image_urls'] ?? [],
+
+            title: $data['title'] ?? null,
+            description: $data['description'] ?? null,
+            isAgency: $data['is_agency'] ?? null,
+            listedAt: isset($data['listed_at']) ? Carbon::parse($data['listed_at']) : null,
+            scrapedAt: isset($data['scraped_at']) ? Carbon::parse($data['scraped_at']) : Carbon::now(),
+        );
+    }
+
+    /**
+     * Convert DTO to plain array for the repository layer.
+     * Keys use snake_case to match database column names.
+     */
+    public function toArray(): array
+    {
+        return [
+            'external_id' => $this->externalId,
+            'url' => $this->url,
+            'source_profile_name' => $this->sourceProfileName,
+
+            'listing_type' => $this->listingType,
+            'property_type' => $this->propertyType,
+
+            'price' => $this->price,
+            'currency' => $this->currency,
+            'price_per_sqm' => $this->pricePerSqm,
+
+            'area' => $this->area,
+            'living_area' => $this->livingArea,
+            'kitchen_area' => $this->kitchenArea,
+
+            'rooms' => $this->rooms,
+            'floor' => $this->floor,
+            'total_floors' => $this->totalFloors,
+            'year_built' => $this->yearBuilt,
+            'ceiling_height' => $this->ceilingHeight,
+            'building_type' => $this->buildingType,
+            'condition' => $this->condition,
+            'is_new_building' => $this->isNewBuilding,
+
+            'has_balcony' => $this->hasBalcony,
+            'has_furniture' => $this->hasFurniture,
+            'has_elevator' => $this->hasElevator,
+            'has_parking' => $this->hasParking,
+            'has_garage' => $this->hasGarage,
+
+            'country' => $this->country,
+            'city' => $this->city,
+            'district' => $this->district,
+            'address' => $this->address,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+
+            'phone' => $this->phone,
+
+            'image_urls' => $this->imageUrls,
+
+            'title' => $this->title,
+            'description' => $this->description,
+            'is_agency' => $this->isAgency,
+            'listed_at' => $this->listedAt?->toDateTimeString(),
+            'scraped_at' => $this->scrapedAt->toDateTimeString(),
+        ];
+    }
+}
