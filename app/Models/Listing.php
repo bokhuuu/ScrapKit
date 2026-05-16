@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Represents a single real estate listing scraped from an external source.
+ *
+ * Stores normalized property data including location, pricing and specifications.
+ * Supports multiple scraping sources via the compound external_id + source unique index.
+ */
 class Listing extends Model
 {
     protected $fillable = [
@@ -41,6 +47,11 @@ class Listing extends Model
         'scraped_at' => 'datetime',
     ];
 
+    /**
+     * Calculate price per square meter from existing columns.
+     *
+     * Returns null if area is missing or zero to avoid division by zero.
+     */
     protected function pricePerSqm(): Attribute
     {
         return Attribute::make(
@@ -48,11 +59,17 @@ class Listing extends Model
         );
     }
 
+    /**
+     * Scope to filter only active listings.
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
+    /**
+     * Scope to filter listings by scraping source.
+     */
     public function scopeForSource(Builder $query, string $source): Builder
     {
         return $query->where('source', $source);

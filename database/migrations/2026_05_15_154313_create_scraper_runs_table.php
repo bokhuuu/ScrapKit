@@ -6,6 +6,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Creates the scraper_runs table.
+ *
+ * Tracks each scraper execution - source, state, progress counters and error messages.
+ */
 return new class extends Migration
 {
     /**

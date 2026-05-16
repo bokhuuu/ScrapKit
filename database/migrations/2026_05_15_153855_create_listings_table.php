@@ -6,6 +6,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+
+/**
+ * Creates the listings table.
+ *
+ * Stores normalized real estate listing data scraped from external sources.
+ * Compound unique index on external_id + source prevents cross-site duplicates.
+ */
 return new class extends Migration
 {
     /**
