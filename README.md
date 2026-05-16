@@ -98,14 +98,14 @@ Entry (artisan / API)
 - AbstractScraperProfile, ListAmProfile
 - ListingDTO, ScraperState enum
 
-### Database & Repository
+### ✅ Database & Repository
 
-- ✅ 2.1 Listings migration
-- ✅ 2.2 ScraperRuns migration
-- ✅ 2.3 Listing model
-- ✅ 2.4 ScraperRun model
-- ⬜ 2.5 ListingRepository
-- ⬜ 2.6 ScraperRunRepository
+- Listings migration
+- ScraperRuns migration
+- Listing model
+- ScraperRun model
+- ListingRepository
+- ScraperRunRepository
 
 ### Processing Pipeline
 
