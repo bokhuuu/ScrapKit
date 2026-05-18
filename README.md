@@ -90,15 +90,15 @@ Entry (artisan / API)
 
 ## Build Progress
 
-### ✅ Foundation
+### Foundation
 
-### ✅ Core Contracts
+### Core Contracts
 
 - ScraperProfileInterface, AuthStrategyInterface
 - AbstractScraperProfile, ListAmProfile
 - ListingDTO, ScraperState enum
 
-### ✅ Database & Repository
+### Database & Repository
 
 - Listings migration
 - ScraperRuns migration
@@ -108,6 +108,18 @@ Entry (artisan / API)
 - ScraperRunRepository
 
 ### Processing Pipeline
+
+- PipelineStageInterface contract
+- NormalizeStringFieldsStage
+- ValidateRequiredFieldsStage
+- CleanPriceStage
+- CleanPhoneStage
+- CleanAreaStage
+- CleanBuildingTypeStage
+- DeduplicateStage
+- EnrichDistrictStage
+- ScraperPipeline orchestrator
+- InvalidListingException, DuplicateListingException
 
 ### Browser Automation
 
