@@ -123,6 +123,12 @@ Entry (artisan / API)
 
 ### Browser Automation
 
+- BaseScraper abstract class
+- ⏭️ BrowserPool - deferred to Phase 10
+- StealthConfig
+- ListAmScraper extends BaseScraper
+- config/scraper.php - all browser settings configurable via .env
+
 ### Authentication
 
 ### Queue & Jobs
