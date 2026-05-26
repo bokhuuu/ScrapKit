@@ -104,14 +104,17 @@ class ListAmScraper extends BaseScraper
             'price'         => $this->extractPrice($selectors),
             'currency'      => $this->extractCurrency($selectors),
             'location'      => $this->safeExtract($selectors['location']),
-            'district'      => $this->safeExtract($selectors['district']),
-            'area'          => $this->safeExtract($selectors['area']),
-            'rooms'         => $this->safeExtract($selectors['rooms']),
-            'floor'         => $this->safeExtract($selectors['floor']),
-            'floor_total'   => $this->safeExtract($selectors['floor_total']),
-            'building_type' => $this->safeExtract($selectors['building_type']),
+            'district'      => null,
+            'area'          => $this->extractSpecByLabel($selectors['area']),
+            'rooms'         => $this->extractSpecByLabel($selectors['rooms']),
+            'floor'         => $this->extractSpecByLabel($selectors['floor']),
+            'total_floors' => $this->extractSpecByLabel($selectors['floor_total']),
+            'building_type' => $this->extractSpecByLabel($selectors['building_type']),
             'description'   => $this->safeExtract($selectors['description']),
             'phone'         => $this->extractPhone($selectors),
+            'new_construction' => $this->extractSpecByLabel($selectors['new_construction']),
+            'renovation'       => $this->extractSpecByLabel($selectors['renovation']),
+            'listing_date'     => $this->extractListingDate($selectors),
             'scraped_at'    => now()->toDateTimeString(),
         ];
     }
@@ -205,5 +208,53 @@ class ListAmScraper extends BaseScraper
         $parts = explode('/', rtrim($url, '/'));
 
         return end($parts) ?: null;
+    }
+
+    /**
+     * Extract a spec value by its label text from the attribute blocks.
+     *
+     * list.am renders all specs identically — same classes on every field.
+     * CSS selectors cannot distinguish floor from rooms from area.
+     * We find the right block by matching the label text instead.
+     *
+     * Handles two layouts:
+     * Normal:   first p = value, second p = label  (Floor Area, Floor, Rooms)
+     * Reversed: first p = label, second p = value  (Construction Type)
+     */
+    private function extractSpecByLabel(string $label): ?string
+    {
+        $result = $this->browser->script("
+        const blocks = document.querySelectorAll('.at2 .attr-info-wraper');
+        for (const block of blocks) {
+            const paragraphs = block.querySelectorAll('p');
+            if (paragraphs.length < 2) continue;
+
+            const first  = paragraphs[0].textContent.trim();
+            const second = paragraphs[1].textContent.trim();
+
+            if (second === '{$label}') return first;
+            if (first  === '{$label}') return second;
+        }
+        return null;
+    ");
+
+        return $result[0] ?? null;
+    }
+
+    /**
+     * Extract listing date from the datePosted meta element.
+     *
+     * list.am stores the clean ISO date in the content attribute:
+     *   <span itemprop="datePosted" content="2026-05-25T09:20:09+00:00">
+     *
+     * We read content="" to get a parseable datetime string.
+     */
+    private function extractListingDate(array $selectors): ?string
+    {
+        try {
+            return $this->getAttribute($selectors['listing_date'], 'content');
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

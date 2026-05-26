@@ -6,7 +6,7 @@ Universal Laravel scraping template - build once, reuse for any site.
 
 ## What It Does
 
-ScrapKit is a production-grade data extraction engine built on Laravel 12.
+ScrapKit is a production-grade data extraction engine.
 Add two files per new site. Everything else - queues, pipeline, deduplication, exports, notifications - works automatically.
 
 **Currently scraping:** [list.am](https://list.am) - Armenia's largest classifieds platform
@@ -92,6 +92,12 @@ Entry (artisan / API)
 
 ### Foundation
 
+- Laravel 12 + PHP 8.4 installed and configured
+- MySQL database, queue driver set to database
+- Laravel Dusk installed
+- Laravel Pint configured with strict_types enforcement
+- Folder structure established, Git repository initialized
+
 ### Core Contracts
 
 - ScraperProfileInterface, AuthStrategyInterface
@@ -100,7 +106,7 @@ Entry (artisan / API)
 
 ### Database & Repository
 
-- Listings migration
+- Listings migration (with new_construction, renovation columns)
 - ScraperRuns migration
 - Listing model
 - ScraperRun model
@@ -124,10 +130,10 @@ Entry (artisan / API)
 ### Browser Automation
 
 - BaseScraper abstract class
-- ⏭️ BrowserPool - deferred to Phase 10
 - StealthConfig
-- ListAmScraper extends BaseScraper
-- config/scraper.php - all browser settings configurable via .env
+- ListAmScraper - verified selectors, label-based spec extraction
+- config/scraper.php - all settings configurable via .env
+- ⏭️ BrowserPool - deferred to Phase 10
 
 ### Authentication
 

@@ -56,28 +56,39 @@ class ListAmProfile extends AbstractScraperProfile
     {
         return [
             'listing_container' => 'div.gl',
-            'detail_link'       => 'a[href*="/en/item/"]',
+            'card_link' => 'a[href*="/en/item/"]',
             'price'             => 'div.p',
             'location'          => 'div.at',
-            'seller_type'       => 'span.ge5',
         ];
     }
 
     /**
      * Selectors for the individual listing detail page.
-     * span[itemprop="price"][content] gives clean numeric value
-     * without parsing the formatted "$750,000" string.
+     * Two types of selectors are used:
+     *   CSS selectors  - passed directly to the browser (price, currency, location)
+     *   Label strings  - used by extractSpecByLabel() to find specs by their
+     *                    label text (area, floor, rooms, building_type)
      */
     public function getDetailSelectors(): array
     {
         return [
-            'price'         => 'span[itemprop="price"]',
-            'price_value'   => 'span[itemprop="price"][content]',
-            'address'       => 'p.te10',
-            'specs'         => 'div.at2',
-            'description'   => 'div.body[itemprop="description"]',
-            'seller_name'   => 'div.pwname',
-            'images'        => 'div.tico img',
+            // CSS selectors - extracted directly
+            'price'       => 'span[itemprop="price"]',
+            'currency'    => 'meta[itemprop="priceCurrency"]',
+            'location'    => '#poi-map-anchor',
+            'description' => 'div.body[itemprop="description"]',
+            'call_button' => 'a.call',
+            'phone_number' => 'span.phone',
+            'listing_date'     => 'span[itemprop="datePosted"]',
+
+            // Label strings - extracted via extractSpecByLabel()
+            'area'          => 'Floor Area',
+            'floor'         => 'Floor',
+            'floor_total'   => 'Floors in the Building',
+            'rooms'         => 'Number of Rooms',
+            'building_type' => 'Construction Type',
+            'new_construction' => 'New Construction',
+            'renovation'       => 'Renovation',
         ];
     }
 }

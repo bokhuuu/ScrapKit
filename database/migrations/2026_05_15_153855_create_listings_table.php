@@ -39,6 +39,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('floor')->nullable();
             $table->unsignedTinyInteger('total_floors')->nullable();
             $table->string('building_type')->nullable();
+            $table->boolean('new_construction')->nullable();
+            $table->string('renovation')->nullable();
             $table->year('build_year')->nullable();
 
             $table->string('phone')->nullable();

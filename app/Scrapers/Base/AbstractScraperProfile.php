@@ -23,12 +23,12 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     }
 
     /**
-     * Two seconds is polite for most sites.
-     * Override in profiles where the site is more sensitive to rapid requests.
+     * Default delay between requests in seconds, read from config.
+     * Override in site profiles that need slower or faster pacing.
      */
     public function getRequestDelay(): int
     {
-        return 2;
+        return (int) config('scraper.default_request_delay_s');
     }
 
     /**

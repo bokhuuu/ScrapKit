@@ -224,14 +224,15 @@ abstract class BaseScraper
     /**
      * Sleep for a random duration between requests.
      *
-     * Random range (not fixed delay) makes the scraper harder to fingerprint.
-     * Min and max come from config - tunable per environment or site.
+     * Base delay comes from the profile - each site defines its own pacing.
+     * Jitter (±30%) randomizes the exact timing so requests are harder to fingerprint.
+     * AbstractScraperProfile falls back to config/scraper.php default_request_delay_s.
      */
     protected function pauseForHuman(): void
     {
-        $min = (int) config('scraper.delay_min_ms');
-        $max = (int) config('scraper.delay_max_ms');
+        $base   = $this->profile->getRequestDelay() * 1000;
+        $jitter = (int) ($base * 0.3);
 
-        usleep(random_int($min, $max) * 1000);
+        usleep(random_int($base - $jitter, $base + $jitter) * 1000);
     }
 }

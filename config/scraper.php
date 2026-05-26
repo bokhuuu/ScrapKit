@@ -81,16 +81,14 @@ return [
     | Human-like Pacing
     |--------------------------------------------------------------------------
     |
-    | Random delay injected between every page request.
-    | Random range (not fixed) makes request timing harder to fingerprint.
-    |
-    | Set both to the same value for a fixed delay.
+    | Default delay between page requests in seconds.
+    | Each site profile can override this via getRequestDelay().
+    | Jitter of ±30% is applied automatically in BaseScraper::pauseForHuman().
     | Increase on sites with aggressive rate limiting.
     |
     */
 
-    'delay_min_ms' => (int) env('SCRAPER_DELAY_MIN_MS', 1_000),
-    'delay_max_ms' => (int) env('SCRAPER_DELAY_MAX_MS', 3_000),
+    'default_request_delay_s' => (int) env('SCRAPER_REQUEST_DELAY', 2),
 
     /*
     |--------------------------------------------------------------------------
