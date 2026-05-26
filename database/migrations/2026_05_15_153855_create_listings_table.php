@@ -41,6 +41,7 @@ return new class extends Migration
             $table->string('building_type')->nullable();
             $table->boolean('new_construction')->nullable();
             $table->string('renovation')->nullable();
+            $table->json('images')->nullable();
             $table->year('build_year')->nullable();
 
             $table->string('phone')->nullable();

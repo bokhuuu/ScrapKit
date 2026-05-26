@@ -80,6 +80,7 @@ class ListAmProfile extends AbstractScraperProfile
             'call_button' => 'a.call',
             'phone_number' => 'span.phone',
             'listing_date'     => 'span[itemprop="datePosted"]',
+            'images' => 'img[src*="s.list.am/f/"]',
 
             // Label strings - extracted via extractSpecByLabel()
             'area'          => 'Floor Area',

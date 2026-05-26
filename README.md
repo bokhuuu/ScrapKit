@@ -106,7 +106,7 @@ Entry (artisan / API)
 
 ### Database & Repository
 
-- Listings migration (with new_construction, renovation columns)
+- Listings migration (with new_construction, renovation,images columns)
 - ScraperRuns migration
 - Listing model
 - ScraperRun model
@@ -131,7 +131,7 @@ Entry (artisan / API)
 
 - BaseScraper abstract class
 - StealthConfig
-- ListAmScraper - verified selectors, label-based spec extraction
+- ListAmScraper - verified selectors, label-based spec extraction, image URL collection
 - config/scraper.php - all settings configurable via .env
 - ⏭️ BrowserPool - deferred to Phase 10
 

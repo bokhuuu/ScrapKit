@@ -89,7 +89,7 @@ class ListAmScraper extends BaseScraper
      *   1. Navigate to the listing URL
      *   2. Inject JS stealth patches
      *   3. Extract each field using profile selectors
-     *   4. Return raw key-value array — pipeline will clean and normalize
+     *   4. Return raw key-value array - pipeline will clean and normalize
      */
     public function crawlDetailPage(string $url): array
     {
@@ -108,14 +108,15 @@ class ListAmScraper extends BaseScraper
             'area'          => $this->extractSpecByLabel($selectors['area']),
             'rooms'         => $this->extractSpecByLabel($selectors['rooms']),
             'floor'         => $this->extractSpecByLabel($selectors['floor']),
-            'total_floors' => $this->extractSpecByLabel($selectors['floor_total']),
+            'total_floors'  => $this->extractSpecByLabel($selectors['floor_total']),
             'building_type' => $this->extractSpecByLabel($selectors['building_type']),
             'description'   => $this->safeExtract($selectors['description']),
             'phone'         => $this->extractPhone($selectors),
             'new_construction' => $this->extractSpecByLabel($selectors['new_construction']),
             'renovation'       => $this->extractSpecByLabel($selectors['renovation']),
+            'images'           => $this->extractImageUrls($selectors),
             'listing_date'     => $this->extractListingDate($selectors),
-            'scraped_at'    => now()->toDateTimeString(),
+            'scraped_at'       => now()->toDateTimeString(),
         ];
     }
 
@@ -125,7 +126,7 @@ class ListAmScraper extends BaseScraper
      * list.am stores the clean numeric price in:
      *   <span itemprop="price" content="150000">$150,000</span>
      *
-     * Reading content="" gives us "150000" — no formatting to clean.
+     * Reading content="" gives us "150000" - no formatting to clean.
      */
     private function extractPrice(array $selectors): ?string
     {
@@ -213,7 +214,7 @@ class ListAmScraper extends BaseScraper
     /**
      * Extract a spec value by its label text from the attribute blocks.
      *
-     * list.am renders all specs identically — same classes on every field.
+     * list.am renders all specs identically - same classes on every field.
      * CSS selectors cannot distinguish floor from rooms from area.
      * We find the right block by matching the label text instead.
      *
@@ -255,6 +256,37 @@ class ListAmScraper extends BaseScraper
             return $this->getAttribute($selectors['listing_date'], 'content');
         } catch (Throwable) {
             return null;
+        }
+    }
+
+    /**
+     * Collect all listing image URLs from the photo gallery.
+     *
+     * list.am serves images from s.list.am/f/ - we select by src pattern
+     * since the img elements have no unique class or id.
+     * URLs are stored as JSON array - fetched on demand, not downloaded.
+     */
+    private function extractImageUrls(array $selectors): array
+    {
+        try {
+            $elements = $this->browser->elements($selectors['images']);
+            $urls = [];
+
+            foreach ($elements as $element) {
+                $src = $element->getAttribute('src');
+
+                if ($src === null || $src === '') {
+                    continue;
+                }
+
+                $urls[] = str_starts_with($src, '//')
+                    ? 'https:' . $src
+                    : $src;
+            }
+
+            return $urls;
+        } catch (Throwable) {
+            return [];
         }
     }
 }
