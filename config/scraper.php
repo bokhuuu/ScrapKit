@@ -103,4 +103,19 @@ return [
 
     'browser_pool_size' => (int) env('BROWSER_POOL_SIZE', 3),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Settings
+    |--------------------------------------------------------------------------
+    |
+    | Default concurrency, retry attempts, and job timeout for queue jobs.
+    | Each site profile can override these via getQueueConfig().
+    | Adjust timeout for slow sites that need more time per page.
+    |
+    */
+
+    'default_concurrency' => (int) env('SCRAPER_CONCURRENCY', 3),
+    'default_retry_times' => (int) env('SCRAPER_RETRY_TIMES', 3),
+    'default_timeout_s'   => (int) env('SCRAPER_TIMEOUT_S', 60),
+
 ];

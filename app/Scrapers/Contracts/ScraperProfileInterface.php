@@ -53,6 +53,18 @@ interface ScraperProfileInterface
     public function getExports(): array;
 
     /**
+     * Notification channels to fire on scrape events for this profile.
+     * Return an empty array to disable notifications for a profile.
+     */
+    public function getNotifiers(): array;
+
+    /**
+     * Queue settings for this profile: concurrency, retry attempts, and job timeout.
+     * Override for slow sites that need more time or fewer parallel jobs.
+     */
+    public function getQueueConfig(): array;
+
+    /**
      * Auth strategy for this site. Returns null if no login required.
      */
     public function getAuthStrategy(): ?AuthStrategyInterface;

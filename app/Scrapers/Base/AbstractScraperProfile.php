@@ -69,4 +69,27 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
             \App\Scrapers\Pipeline\Stages\DeduplicateStage::class,
         ];
     }
+
+    /**
+     * Telegram is the default notification channel.
+     * Override to add Slack, disable notifications, or use multiple channels.
+     * Return an empty array to silence all notifications for a profile.
+     */
+    public function getNotifiers(): array
+    {
+        return ['telegram'];
+    }
+
+    /**
+     * Default queue settings read from config.
+     * Override for slow or rate-limited sites that need different concurrency or timeouts.
+     */
+    public function getQueueConfig(): array
+    {
+        return [
+            'concurrency' => (int) config('scraper.default_concurrency'),
+            'retry_times' => (int) config('scraper.default_retry_times'),
+            'timeout'     => (int) config('scraper.default_timeout_s'),
+        ];
+    }
 }
