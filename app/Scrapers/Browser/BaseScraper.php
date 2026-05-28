@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Scrapers\Browser;
 
+use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use Closure;
 use Facebook\WebDriver\Chrome\ChromeOptions;
@@ -27,6 +28,7 @@ use Throwable;
 abstract class BaseScraper
 {
     protected Browser $browser;
+    protected ?AuthStrategyInterface $authStrategy = null;
 
     /**
      * Inject the site profile so child scrapers can access
@@ -88,6 +90,35 @@ abstract class BaseScraper
             '--disable-dev-shm-usage',
             '--window-size=' . config('scraper.browser_window_size'),
         ];
+    }
+
+    /**
+     * Attach an authentication strategy to this scraper.
+     *
+     * Auth is optional - sites without login requirements pass nothing.
+     * Called by ScraperManager before crawling begins.
+     */
+    public function setAuthStrategy(AuthStrategyInterface $authStrategy): void
+    {
+        $this->authStrategy = $authStrategy;
+    }
+
+    /**
+     * Ensure the browser session is authenticated before performing
+     * an action that requires login (e.g. revealing a phone number).
+     *
+     * If no auth strategy is set - no-op, safe to call anywhere.
+     * If strategy is set and session is stale - re-authenticates.
+     */
+    protected function ensureAuthenticated(): void
+    {
+        if ($this->authStrategy === null) {
+            return;
+        }
+
+        if (! $this->authStrategy->isAuthenticated()) {
+            $this->authStrategy->authenticate();
+        }
     }
 
     /**

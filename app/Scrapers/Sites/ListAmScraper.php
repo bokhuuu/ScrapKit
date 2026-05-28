@@ -172,6 +172,8 @@ class ListAmScraper extends BaseScraper
                 return null;
             }
 
+            $this->ensureAuthenticated();
+
             $this->click($selectors['call_button']);
             $this->waitFor($selectors['phone_number']);
 

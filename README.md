@@ -211,35 +211,37 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `StealthConfig` - ChromeDriver fingerprint hardening
 - `ListAmScraper` - verified selectors, label-based spec extraction, image URL collection
 - `config/scraper.php` - all settings configurable via `.env`
-- ⏭️ `BrowserPool` - deferred to Phase 10
+- ⬜ `BrowserPool` - deferred to Phase 10
 
 ### Authentication
 
-- ⬜ `CookieAuthStrategy`
-- ⬜ `FormLoginStrategy`
-- ⬜ Cookie storage conventions
+- `CookieAuthStrategy` - cookie-first session restore, form login fallback, saves cookies to disk
+- `FormLoginStrategy` - fills email/password form, submits, confirms success via DOM selector
+- Cookie storage convention - `storage/app/scraper/cookies/{profileName}.json`
+- `BaseScraper` - `setAuthStrategy()` + `ensureAuthenticated()` added
+- `ListAmScraper` - `ensureAuthenticated()` called before phone reveal click
 
-### Queue & Jobs
+### ⬜ Queue & Jobs
 
 - `CrawlIndexPageJob` - one per index page, runs in parallel
 - `CrawlDetailPageJob` - one per listing URL
 - `ScrapeCompletedJob` - fires when all pages done
 - Queue configuration, job middleware, failed job handling
 
-### Orchestration
+### ⬜ Orchestration
 
 - `ScraperManager` - loads profile, dispatches jobs
 - `scraper:run` artisan command
 - `scraper:status` artisan command
 - `scraper:cancel` artisan command
 
-### Events & Notifications
+### ⬜ Events & Notifications
 
 - `ListingSaved`, `ScrapeFailed`, `ScrapeCompleted` events
 - `TelegramNotifier`, `SlackNotifier`
 - `NotifierInterface`
 
-### Export Layer
+### ⬜ Export Layer
 
 - `ExporterInterface`
 - `ExcelExporter`, `CsvExporter`, `JsonExporter`
@@ -247,7 +249,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - Client-specific Excel report (4 sheets)
 - Sample output added to `/examples`
 
-### Caching & Performance
+### ⬜ Caching & Performance
 
 - Redis setup
 - Cache scraped pages + price statistics
@@ -256,7 +258,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `BrowserPool` - parallel browser instances
 - `ProxyResolver` - rotating proxy support
 
-### API Layer
+### ⬜ API Layer
 
 - Sanctum authentication
 - `POST /api/scrape/start`
@@ -264,9 +266,10 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `POST /api/scrape/cancel`
 - `GET  /api/listings`
 - `GET  /api/listings/stats`
+- `GET  /api/health`
 - API rate limiting
 
-### Testing
+### ⬜ Testing
 
 - Unit tests for all pipeline stages (Pest)
 - Mock browser responses
@@ -274,7 +277,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - Feature test: full scrape run end-to-end
 - Test coverage report + badge
 
-### Docker & Deployment
+### ⬜ Docker & Deployment
 
 - `Dockerfile`, `docker-compose.yml`
 - GitHub Actions CI/CD pipeline
@@ -282,7 +285,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - Sentry error tracking integration
 - VPS deployment guide
 
-### Documentation
+### ⬜ Documentation
 
 - `CONTRIBUTING.md`
 - Architecture diagram (image)
