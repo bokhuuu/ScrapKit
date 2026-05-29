@@ -42,7 +42,7 @@ Excel export preview and sample file will be placed in `/examples` once Phase 9 
 
 ## Performance
 
-> Benchmarks coming after Phase 6 (Queue & Jobs) is complete
+> Benchmarks coming after Phase 10 (BrowserPool & Redis) is complete
 
 | Mode                            | Expected throughput  |
 | ------------------------------- | -------------------- |
@@ -225,13 +225,14 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `ThrottledRetryMiddleware` - backoff on retries
 - `RateLimitedMiddleware` - written, activates in Phase 10 with Redis
 - Failed job handling via `failed_jobs` table + artisan queue:\* commands
+- Reusability fix: jobs resolve scraper class via `profile->getScraperClass()` - no hardcoded scraper references in shared infrastructure
 
-### ⬜ Orchestration
+### Orchestration
 
-- `ScraperManager` - loads profile, dispatches jobs
-- `scraper:run` artisan command
-- `scraper:status` artisan command
-- `scraper:cancel` artisan command
+- `ScraperManager` - loads profile, creates ScraperRun, dispatches Bus::batch()
+- `scraper:run` - start a scrape run from terminal, profile registry in config
+- `scraper:status` - check latest run state for a source
+- `scraper:cancel` - cancel an active run by ID
 
 ### ⬜ Events & Notifications
 
