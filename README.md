@@ -1,10 +1,5 @@
 # ScrapKit 🕷️
 
-![PHP](https://img.shields.io/badge/PHP-8.4-blue)
-![Laravel](https://img.shields.io/badge/Laravel-12-red)
-![License](https://img.shields.io/badge/license-MIT-green)
-![CI](https://github.com/bokhuuu/ScrapKit/actions/workflows/ci.yml/badge.svg)
-
 Universal Laravel scraping template - build once, reuse for any site.
 
 ---
@@ -221,12 +216,15 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `BaseScraper` - `setAuthStrategy()` + `ensureAuthenticated()` added
 - `ListAmScraper` - `ensureAuthenticated()` called before phone reveal click
 
-### ⬜ Queue & Jobs
+### Queue & Jobs
 
-- `CrawlIndexPageJob` - one per index page, runs in parallel
-- `CrawlDetailPageJob` - one per listing URL
-- `ScrapeCompletedJob` - fires when all pages done
-- Queue configuration, job middleware, failed job handling
+- `CrawlIndexPageJob` - one per index page, dispatches detail jobs in parallel
+- `CrawlDetailPageJob` - crawl → DTO → pipeline → DB
+- `ScrapeCompletedJob` - fires when batch completes, marks run finished
+- Queue tables confirmed (jobs, job_batches, failed_jobs)
+- `ThrottledRetryMiddleware` - backoff on retries
+- `RateLimitedMiddleware` - written, activates in Phase 10 with Redis
+- Failed job handling via `failed_jobs` table + artisan queue:\* commands
 
 ### ⬜ Orchestration
 

@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Jobs;
+
+use App\Jobs\Middleware\ThrottledRetryMiddleware;
+use App\Scrapers\Browser\ListAmScraper;
+use App\Scrapers\Contracts\ScraperProfileInterface;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
+/**
+ * Crawls one index page (listing grid) and dispatches
+ * one CrawlDetailPageJob per URL found on that page.
+ *
+ * Dispatched by ScraperManager - one job per page number.
+ * 50 pages = 50 of these jobs, all processed in parallel.
+ */
+class CrawlIndexPageJob implements ShouldQueue
+{
+    use Queueable, InteractsWithQueue, SerializesModels;
+
+    public int $tries;
+    public int $timeout;
+
+    public function __construct(
+        private readonly ScraperProfileInterface $profile,
+        private readonly int $page,
+        private readonly int $scraperRunId,
+    ) {
+        $config = $profile->getQueueConfig();
+        $this->tries = $config['retry_times'] ?? config('scraper.default_retry_times');
+        $this->timeout = $config['timeout_s'] ?? config('scraper.default_timeout_s');
+    }
+
+    public function middleware(): array
+    {
+        $config = $this->profile->getQueueConfig();
+
+        return [
+            new ThrottledRetryMiddleware(),
+        ];
+    }
+
+    public function handle(): void
+    {
+        $scraper = new ListAmScraper($this->profile);
+
+        try {
+            $urls = $scraper->crawlIndexPage($this->page);
+
+            foreach ($urls as $url) {
+                CrawlDetailPageJob::dispatch(
+                    profile: $this->profile,
+                    url: $url,
+                    scraperRunId: $this->scraperRunId,
+                );
+            }
+        } finally {
+            $scraper->closeBrowser();
+        }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('CrawlIndexPageJob failed', [
+            'source' => $this->profile->getName(),
+            'page' => $this->page,
+            'run_id' => $this->scraperRunId,
+            'error' => $exception->getMessage(),
+        ]);
+    }
+}
