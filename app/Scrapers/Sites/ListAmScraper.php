@@ -99,24 +99,28 @@ class ListAmScraper extends BaseScraper
         $selectors = $this->profile->getDetailSelectors();
 
         return [
-            'source_url'    => $url,
-            'source_id'     => $this->extractSourceId($url),
-            'price'         => $this->extractPrice($selectors),
-            'currency'      => $this->extractCurrency($selectors),
-            'location'      => $this->safeExtract($selectors['location']),
-            'district'      => null,
-            'area'          => $this->extractSpecByLabel($selectors['area']),
-            'rooms'         => $this->extractSpecByLabel($selectors['rooms']),
-            'floor'         => $this->extractSpecByLabel($selectors['floor']),
-            'total_floors'  => $this->extractSpecByLabel($selectors['floor_total']),
-            'building_type' => $this->extractSpecByLabel($selectors['building_type']),
-            'description'   => $this->safeExtract($selectors['description']),
-            'phone'         => $this->extractPhone($selectors),
-            'new_construction' => $this->extractSpecByLabel($selectors['new_construction']),
-            'renovation'       => $this->extractSpecByLabel($selectors['renovation']),
-            'images'           => $this->extractImageUrls($selectors),
-            'listing_date'     => $this->extractListingDate($selectors),
-            'scraped_at'       => now()->toDateTimeString(),
+            'external_id'        => $this->extractSourceId($url),
+            'url'                => $url,
+            'source_profile_name' => $this->profile->getName(),
+            'listing_type'       => 'sale',
+            'property_type'      => 'apartment',
+            'price'              => $this->extractPrice($selectors),
+            'currency'           => $this->extractCurrency($selectors),
+            'price_per_sqm'      => null,
+            'location'           => $this->safeExtract($selectors['location']),
+            'district'           => null,
+            'area'               => $this->extractSpecByLabel($selectors['area']),
+            'rooms'              => $this->extractSpecByLabel($selectors['rooms']),
+            'floor'              => $this->extractSpecByLabel($selectors['floor']),
+            'total_floors'       => $this->extractSpecByLabel($selectors['floor_total']),
+            'building_type'      => $this->extractSpecByLabel($selectors['building_type']),
+            'description'        => $this->safeExtract($selectors['description']),
+            'phone'              => $this->extractPhone($selectors),
+            'is_new_building'    => $this->extractSpecByLabel($selectors['new_construction']),
+            'condition'          => $this->extractSpecByLabel($selectors['renovation']),
+            'images'             => $this->extractImageUrls($selectors),
+            'listing_date'       => $this->extractListingDate($selectors),
+            'scraped_at'         => $this->scrapedAt(),
         ];
     }
 
@@ -181,36 +185,6 @@ class ListAmScraper extends BaseScraper
         } catch (Throwable) {
             return null;
         }
-    }
-
-    /**
-     * Safely extract text from a selector that may not exist.
-     *
-     * Optional fields (floor, rooms, building type) are not present
-     * on every listing. Return null instead of throwing.
-     */
-    private function safeExtract(string $selector): ?string
-    {
-        try {
-            return $this->isPresent($selector)
-                ? $this->getText($selector)
-                : null;
-        } catch (Throwable) {
-            return null;
-        }
-    }
-
-    /**
-     * Pull the listing ID from the detail page URL.
-     *
-     * list.am URLs follow the pattern: /en/item/23222099
-     * We extract the numeric ID at the end for deduplication.
-     */
-    private function extractSourceId(string $url): ?string
-    {
-        $parts = explode('/', rtrim($url, '/'));
-
-        return end($parts) ?: null;
     }
 
     /**

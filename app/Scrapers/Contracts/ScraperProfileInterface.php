@@ -78,4 +78,16 @@ interface ScraperProfileInterface
      * Browser settings: headless mode, window size, and user agent string.
      */
     public function getBrowserConfig(): array;
+
+    /**
+     * Fields required for a listing to be processable.
+     * Passed to ValidateRequiredFieldsStage at pipeline construction.
+     * Different sites expose different data - price may not always be available.
+     */
+    public function getRequiredFields(): array;
+
+    /**
+     * Returns the fully-qualified class name of the scraper for this site.
+     */
+    public function getScraperClass(): string;
 }

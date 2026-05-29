@@ -253,6 +253,43 @@ abstract class BaseScraper
     }
 
     /**
+     * Safely extract text from a selector that may not exist.
+     * Inherited by all scrapers — optional fields never crash the scrape.
+     */
+    protected function safeExtract(string $selector): ?string
+    {
+        try {
+            return $this->isPresent($selector)
+                ? $this->getText($selector)
+                : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Pull the listing ID from the last segment of a URL.
+     * Works for any site that puts the ID at the end: /en/item/23222099
+     * Override in child scraper if the site uses a different URL pattern.
+     */
+    protected function extractSourceId(string $url): ?string
+    {
+        $parts = explode('/', rtrim($url, '/'));
+        $last = end($parts) ?: null;
+
+        return $last ? explode('?', $last)[0] : null;
+    }
+
+    /**
+     * Current timestamp for scraped_at field.
+     * Centralized so every scraper uses identical format.
+     */
+    protected function scrapedAt(): string
+    {
+        return now()->toDateTimeString();
+    }
+
+    /**
      * Sleep for a random duration between requests.
      *
      * Base delay comes from the profile - each site defines its own pacing.

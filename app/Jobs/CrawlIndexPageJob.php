@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\DTOs\ListingDTO;
 use App\Jobs\Middleware\ThrottledRetryMiddleware;
-use App\Repositories\ListingRepository;
-use App\Scrapers\Browser\ListAmScraper;
 use App\Scrapers\Contracts\ScraperProfileInterface;
-use App\Scrapers\Pipeline\ScraperPipeline;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -18,22 +15,22 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Crawls one listing detail page, runs it through the pipeline,
- * and persists the result to the database.
+ * Crawls one index page (listing grid) and dispatches
+ * one CrawlDetailPageJob per URL found on that page.
  *
- * Dispatched by CrawlIndexPageJob - one job per URL found on a grid page.
- * These are the most numerous jobs: 50 pages × 20 listings = ~1000 jobs per run.
+ * Dispatched by ScraperManager - one job per page number.
+ * 50 pages = 50 of these jobs, all processed in parallel.
  */
-class CrawlDetailPageJob implements ShouldQueue
+class CrawlIndexPageJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use Batchable, Queueable, InteractsWithQueue, SerializesModels;
 
     public int $tries;
     public int $timeout;
 
     public function __construct(
         private readonly ScraperProfileInterface $profile,
-        private readonly string $url,
+        private readonly int $page,
         private readonly int $scraperRunId,
     ) {
         $config = $profile->getQueueConfig();
@@ -43,33 +40,25 @@ class CrawlDetailPageJob implements ShouldQueue
 
     public function middleware(): array
     {
-        $config = $this->profile->getQueueConfig();
-
         return [
             new ThrottledRetryMiddleware(),
         ];
     }
 
-    public function handle(ListingRepository $repository): void
+    public function handle(): void
     {
-        $scraper = new ListAmScraper($this->profile);
+        $scraper = new ($this->profile->getScraperClass())($this->profile);
 
         try {
-            $raw = $scraper->crawlDetailPage($this->url);
+            $urls = $scraper->crawlIndexPage($this->page);
 
-            $dto = ListingDTO::fromArray($raw);
-
-            $pipeline = new ScraperPipeline(
-                $this->profile->getPipelineStages()
-            );
-
-            $processed = $pipeline->process($dto);
-
-            if ($processed === null) {
-                return;
+            foreach ($urls as $url) {
+                CrawlDetailPageJob::dispatch(
+                    profile: $this->profile,
+                    url: $url,
+                    scraperRunId: $this->scraperRunId,
+                );
             }
-
-            $repository->updateOrCreate($processed->toArray());
         } finally {
             $scraper->closeBrowser();
         }
@@ -77,9 +66,9 @@ class CrawlDetailPageJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('CrawlDetailPageJob failed', [
+        Log::error('CrawlIndexPageJob failed', [
             'source' => $this->profile->getName(),
-            'url' => $this->url,
+            'page' => $this->page,
             'run_id' => $this->scraperRunId,
             'error' => $exception->getMessage(),
         ]);

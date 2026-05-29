@@ -23,10 +23,10 @@ final class CleanPriceStage implements PipelineStageInterface
     }
 
     /**
-     * Remove all non-numeric characters and return as integer.
+     * Remove all non-numeric characters and return as float.
      * Returns null if the cleaned value is empty or zero.
      */
-    private function cleanPrice(mixed $value): ?int
+    private function cleanPrice(mixed $value): ?float
     {
         if ($value === null) {
             return null;
@@ -38,6 +38,6 @@ final class CleanPriceStage implements PipelineStageInterface
             return null;
         }
 
-        return (int) $cleaned;
+        return (float) $cleaned;
     }
 }

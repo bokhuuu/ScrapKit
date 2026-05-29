@@ -16,16 +16,17 @@ use App\Scrapers\Exceptions\InvalidListingException;
  */
 final class ValidateRequiredFieldsStage implements PipelineStageInterface
 {
-    private const REQUIRED_FIELDS = [
-        'sourceProfileName',
-        'externalId',
-        'url',
-        'price',
-    ];
+    /**
+     * Fields that must be present for a listing to be processable.
+     * Provided by the site profile at pipeline construction time.
+     */
+    public function __construct(
+        private readonly array $requiredFields,
+    ) {}
 
     public function handle(ListingDTO $dto): ListingDTO
     {
-        foreach (self::REQUIRED_FIELDS as $field) {
+        foreach ($this->requiredFields as $field) {
             if ($this->isMissing($dto->$field)) {
                 throw new InvalidListingException(
                     "Required field '{$field}' is missing or empty."

@@ -86,7 +86,9 @@ final class ListingDTO
             ceilingHeight: isset($data['ceiling_height']) ? (float) $data['ceiling_height'] : null,
             buildingType: $data['building_type'] ?? null,
             condition: $data['condition'] ?? null,
-            isNewBuilding: $data['is_new_building'] ?? null,
+            isNewBuilding: isset($data['is_new_building'])
+                ? filter_var($data['is_new_building'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+                : null,
 
             hasBalcony: $data['has_balcony'] ?? null,
             hasFurniture: $data['has_furniture'] ?? null,
@@ -97,7 +99,7 @@ final class ListingDTO
             country: $data['country'] ?? null,
             city: $data['city'] ?? null,
             district: $data['district'] ?? null,
-            address: $data['address'] ?? null,
+            address: $data['location'] ?? $data['address'] ?? null,
             latitude: isset($data['latitude']) ? (float) $data['latitude'] : null,
             longitude: isset($data['longitude']) ? (float) $data['longitude'] : null,
 

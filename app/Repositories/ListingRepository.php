@@ -31,7 +31,7 @@ class ListingRepository
     public function updateOrCreate(array $data): Listing
     {
         return Listing::updateOrCreate(
-            ['external_id' => $data['external_id'], 'source' => $data['source']],
+            ['external_id' => $data['external_id'], 'source_profile_name' => $data['source_profile_name']],
             $data
         );
     }
@@ -44,7 +44,7 @@ class ListingRepository
     public function existsByExternalId(string $externalId, string $source): bool
     {
         return Listing::where('external_id', $externalId)
-            ->where('source', $source)
+            ->where('source_profile_name', $source)
             ->exists();
     }
 
@@ -54,21 +54,7 @@ class ListingRepository
      */
     public function findBySource(string $source): Collection
     {
-        return Listing::forSource($source)->active()->get();
-    }
-
-    /**
-     * Retrieve active listings for a specific district and source, ordered by price ascending.
-     *
-     * Primary query method for Colliers district-level market research.
-     */
-    public function findByDistrict(string $district, string $source): Collection
-    {
-        return Listing::forSource($source)
-            ->active()
-            ->where('district', $district)
-            ->orderBy('price')
-            ->get();
+        return Listing::forSource($source)->get();
     }
 
     /**

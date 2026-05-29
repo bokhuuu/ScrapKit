@@ -118,4 +118,20 @@ return [
     'default_retry_times' => (int) env('SCRAPER_RETRY_TIMES', 3),
     'default_timeout_s'   => (int) env('SCRAPER_TIMEOUT_S', 60),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scraper Profiles
+    |--------------------------------------------------------------------------
+    |
+    | Maps profile name strings to their class implementations.
+    | Add a new entry here to register a new scraping target.
+    | No other files need to change.
+    |
+    | 'name' => ProfileClass::class
+    |
+    */
+
+    'profiles' => [
+        'listam' => \App\Scrapers\Profiles\ListAmProfile::class,
+    ],
 ];

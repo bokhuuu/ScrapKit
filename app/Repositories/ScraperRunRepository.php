@@ -36,6 +36,52 @@ class ScraperRunRepository
     }
 
     /**
+     * Mark a scraper run as successfully completed.
+     *
+     * Convenience wrapper called by ScrapeCompletedJob.
+     */
+    public function markAsCompleted(int $id): void
+    {
+        ScraperRun::where('id', $id)->update([
+            'state' => ScraperState::Completed,
+            'finished_at' => now(),
+        ]);
+    }
+    /**
+     * Mark a scraper run as failed.
+     *
+     * Convenience wrapper called by ScraperManager batch catch() callback.
+     */
+    public function markAsFailed(int $id, ?string $error = null): void
+    {
+        ScraperRun::where('id', $id)->update([
+            'state' => ScraperState::Failed,
+            'finished_at' => now(),
+            'error' => $error,
+        ]);
+    }
+
+    /**
+     * Mark a scraper run as cancelled.
+     *
+     * Called by the scraper:cancel command.
+     */
+    public function markAsCancelled(int $id): void
+    {
+        $this->updateState($id, ScraperState::Cancelled);
+    }
+
+    /**
+     * Find a single scraper run by its primary key.
+     *
+     * Returns null if no record exists with that ID.
+     */
+    public function findById(int $id): ?ScraperRun
+    {
+        return ScraperRun::find($id);
+    }
+
+    /**
      * Retrieve all scraper runs for a given source.
      */
     public function findBySource(string $source): Collection

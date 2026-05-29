@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Scrapers\Profiles;
 
 use App\Scrapers\Base\AbstractScraperProfile;
+use App\Scrapers\Pipeline\Stages\EnrichDistrictStage;
+use App\Scrapers\Sites\ListAmScraper;
 
 /**
  * Scraper profile for list.am : Armenia's largest classifieds platform.
@@ -36,7 +38,7 @@ class ListAmProfile extends AbstractScraperProfile
      */
     public function getIndexUrlPattern(): string
     {
-        return 'https://www.list.am/category/60/{page}';
+        return 'https://www.list.am/en/category/60/{page}';
     }
 
     /**
@@ -91,5 +93,62 @@ class ListAmProfile extends AbstractScraperProfile
             'new_construction' => 'New Construction',
             'renovation'       => 'Renovation',
         ];
+    }
+
+    /**
+     * Fields required for a listing to be processable.
+     * Passed to ValidateRequiredFieldsStage at pipeline construction.
+     */
+    public function getRequiredFields(): array
+    {
+        return [
+            'sourceProfileName',
+            'externalId',
+            'url',
+            'price',
+        ];
+    }
+
+    /**
+     * Known Yerevan districts for address-based enrichment.
+     * Passed to EnrichDistrictStage at pipeline construction.
+     */
+    public function getDistricts(): array
+    {
+        return [
+            'Kentron',
+            'Arabkir',
+            'Avan',
+            'Davtashen',
+            'Erebuni',
+            'Malatia-Sebastia',
+            'Nor Nork',
+            'Nork-Marash',
+            'Nubarashen',
+            'Shengavit',
+            'Ajapnyak',
+            'Kanaker-Zeytun',
+        ];
+    }
+
+    /**
+     * Extends the default pipeline with district enrichment.
+     * EnrichDistrictStage is real estate specific — not part of the default pipeline.
+     */
+    public function getPipelineStages(): array
+    {
+        return [
+            ...parent::getPipelineStages(),
+            new EnrichDistrictStage($this->getDistricts()),
+        ];
+    }
+
+    /**
+     * The scraper class responsible for crawling list.am pages.
+     * Used by queue jobs to instantiate the correct scraper without hardcoding.
+     */
+    public function getScraperClass(): string
+    {
+        return ListAmScraper::class;
     }
 }

@@ -16,20 +16,13 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class EnrichDistrictStage implements PipelineStageInterface
 {
-    private const DISTRICTS = [
-        'Kentron',
-        'Arabkir',
-        'Avan',
-        'Davtashen',
-        'Erebuni',
-        'Malatia-Sebastia',
-        'Nor Nork',
-        'Nork-Marash',
-        'Nubarashen',
-        'Shengavit',
-        'Ajapnyak',
-        'Kanaker-Zeytun',
-    ];
+    /**
+     * Known districts for the target city.
+     * Provided by the site profile at pipeline construction time.
+     */
+    public function __construct(
+        private readonly array $districts,
+    ) {}
 
     public function handle(ListingDTO $dto): ListingDTO
     {
@@ -52,7 +45,7 @@ final class EnrichDistrictStage implements PipelineStageInterface
             return null;
         }
 
-        foreach (self::DISTRICTS as $known) {
+        foreach ($this->districts as $known) {
             if (stripos($address, $known) !== false) {
                 return $known;
             }

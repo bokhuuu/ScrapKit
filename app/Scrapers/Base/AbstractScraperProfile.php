@@ -4,15 +4,43 @@ declare(strict_types=1);
 
 namespace App\Scrapers\Base;
 
+use App\Repositories\ListingRepository;
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
+use App\Scrapers\Pipeline\Stages\CleanAreaStage;
+use App\Scrapers\Pipeline\Stages\CleanBuildingTypeStage;
+use App\Scrapers\Pipeline\Stages\CleanPhoneStage;
+use App\Scrapers\Pipeline\Stages\CleanPriceStage;
+use App\Scrapers\Pipeline\Stages\DeduplicateStage;
+use App\Scrapers\Pipeline\Stages\NormalizeStringFieldsStage;
+use App\Scrapers\Pipeline\Stages\ValidateRequiredFieldsStage;
 
 /**
  * Default implementations for methods common across all scraper profiles.
  * Concrete profiles extend this and override only what differs.
+ * 
+ * Abstract methods must be implemented by every profile - they contain
+ * site-specific data that cannot have a sensible default.
  */
 abstract class AbstractScraperProfile implements ScraperProfileInterface
 {
+    /**
+     * Fields required for a listing to be processable.
+     * Passed to ValidateRequiredFieldsStage at pipeline construction.
+     * Different sites expose different data - price may not always be available.
+     */
+    abstract public function getRequiredFields(): array;
+
+    /**
+     * Known districts for the target city.
+     * Override in profiles that use EnrichDistrictStage.
+     * Returns empty array by default — most sites do not need district enrichment.
+     */
+    public function getDistricts(): array
+    {
+        return [];
+    }
+
     /**
      * Most sites are public - no auth required by default.
      * Override in profiles that require login (e.g. to reveal phone numbers).
@@ -39,9 +67,9 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     public function getBrowserConfig(): array
     {
         return [
-            'headless'    => true,
-            'window_size' => '1920,1080',
-            'user_agent'  => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'headless' => true,
+            'window_size' => config('scraper.browser_window_size'),
+            'user_agent'  => config('scraper.user_agent'),
         ];
     }
 
@@ -62,11 +90,14 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     public function getPipelineStages(): array
     {
         return [
-            \App\Scrapers\Pipeline\Stages\NormalizeFieldsStage::class,
-            \App\Scrapers\Pipeline\Stages\ValidateRequiredFieldsStage::class,
-            \App\Scrapers\Pipeline\Stages\CleanPriceStage::class,
-            \App\Scrapers\Pipeline\Stages\CleanAreaStage::class,
-            \App\Scrapers\Pipeline\Stages\DeduplicateStage::class,
+            new NormalizeStringFieldsStage(),
+            new ValidateRequiredFieldsStage($this->getRequiredFields()),
+            new CleanPriceStage(),
+            new CleanPhoneStage(),
+            new CleanAreaStage(),
+            new CleanBuildingTypeStage(),
+            new DeduplicateStage(new ListingRepository()),
+
         ];
     }
 
@@ -91,5 +122,15 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
             'retry_times' => (int) config('scraper.default_retry_times'),
             'timeout'     => (int) config('scraper.default_timeout_s'),
         ];
+    }
+
+    /**
+     * Build a paginated index URL for the given page number.
+     *
+     * Replaces the {page} placeholder in getIndexUrlPattern().
+     */
+    public function buildIndexUrl(int $page): string
+    {
+        return str_replace('{page}', (string) $page, $this->getIndexUrlPattern());
     }
 }
