@@ -25,11 +25,11 @@ class RateLimitedMiddleware
     {
         Redis::throttle("scraper:{$this->source}")
             ->allow($this->maxConcurrent)
-            ->every(1)
+            ->every(config('scraper.rate_limit_window_s'))
             ->then(
                 fn() => $next($job),
                 function () use ($job) {
-                    $job->release(5);
+                    $job->release(config('scraper.rate_limit_release_s'));
                 }
             );
     }

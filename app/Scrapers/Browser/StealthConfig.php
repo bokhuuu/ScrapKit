@@ -54,8 +54,6 @@ class StealthConfig
             // Disable extensions popup that sometimes appears in automation
             '--disable-extensions',
 
-            // Prevent Chrome from saving automation session data
-            '--incognito',
         ];
     }
 
@@ -83,7 +81,9 @@ class StealthConfig
             "Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]})",
 
             // Fake supported languages - headless Chrome often has empty languages.
-            "Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})",
+            "Object.defineProperty(navigator, 'languages', {get: () => " . json_encode(
+                explode(',', (string) config('scraper.browser_languages', 'en-US,en'))
+            ) . "})",
         ];
     }
 

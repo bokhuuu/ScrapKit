@@ -90,4 +90,24 @@ interface ScraperProfileInterface
      * Returns the fully-qualified class name of the scraper for this site.
      */
     public function getScraperClass(): string;
+
+    /**
+     * Known districts for the target city.
+     * Used by EnrichDistrictStage and district extraction logic.
+     * Returns empty array for sites that don't need district enrichment.
+     */
+    public function getDistricts(): array;
+
+    /**
+     * Colloquial district name aliases.
+     * Maps non-standard names to official district names (e.g. "the center" → "Kentron").
+     * Returns empty array for sites that use official names only.
+     */
+    public function getDistrictAliases(): array;
+
+    /**
+     * Build a paginated index URL for the given page number.
+     * Replaces {page} placeholder in getIndexUrlPattern().
+     */
+    public function buildIndexUrl(int $page): string;
 }

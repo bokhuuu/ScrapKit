@@ -27,57 +27,38 @@ class Listing extends Model
         'price_per_sqm',
 
         'area',
-        'living_area',
-        'kitchen_area',
 
         'rooms',
+        'bathrooms',
         'floor',
         'total_floors',
-        'year_built',
         'ceiling_height',
         'building_type',
         'condition',
         'is_new_building',
 
-        'has_balcony',
-        'has_furniture',
-        'has_elevator',
-        'has_parking',
-        'has_garage',
-
-        'country',
-        'city',
         'district',
         'address',
-        'latitude',
-        'longitude',
 
         'phone',
-        'description',
+        'agency_name',
         'images',
+        'extras',
 
         'listing_date',
         'scraped_at',
     ];
 
     protected $casts = [
-        'price'        => 'float',
-        'price_per_sqm' => 'float',
-        'area'         => 'float',
-        'living_area'  => 'float',
-        'kitchen_area' => 'float',
-        'ceiling_height' => 'float',
-        'latitude'     => 'float',
-        'longitude'    => 'float',
+        'price'           => 'float',
+        'price_per_sqm'   => 'float',
+        'area'            => 'float',
+        'ceiling_height'  => 'float',
         'is_new_building' => 'boolean',
-        'has_balcony'  => 'boolean',
-        'has_furniture' => 'boolean',
-        'has_elevator' => 'boolean',
-        'has_parking'  => 'boolean',
-        'has_garage'   => 'boolean',
-        'images'       => 'array',
-        'listing_date' => 'datetime',
-        'scraped_at'   => 'datetime',
+        'images'          => 'array',
+        'extras'          => 'array',
+        'listing_date'    => 'datetime',
+        'scraped_at'      => 'datetime',
     ];
 
     /**

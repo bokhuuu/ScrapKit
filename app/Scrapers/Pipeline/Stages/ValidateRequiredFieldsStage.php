@@ -5,21 +5,17 @@ declare(strict_types=1);
 namespace App\Scrapers\Pipeline\Stages;
 
 use App\DTOs\ListingDTO;
-use App\Scrapers\Pipeline\PipelineStageInterface;
 use App\Scrapers\Exceptions\InvalidListingException;
+use App\Scrapers\Pipeline\PipelineStageInterface;
 
 /**
  * Validates that all required fields are present on the DTO.
  *
- * Throws InvalidListingException if any required field is
- * null or empty. The pipeline catches this and skips the listing.
+ * Throws InvalidListingException if any required field is null or empty.
+ * The pipeline catches this and skips the listing without interrupting the run.
  */
 final class ValidateRequiredFieldsStage implements PipelineStageInterface
 {
-    /**
-     * Fields that must be present for a listing to be processable.
-     * Provided by the site profile at pipeline construction time.
-     */
     public function __construct(
         private readonly array $requiredFields,
     ) {}
@@ -37,6 +33,9 @@ final class ValidateRequiredFieldsStage implements PipelineStageInterface
         return $dto;
     }
 
+    /**
+     * A field is missing if it is null or an empty string.
+     */
     private function isMissing(mixed $value): bool
     {
         return $value === null || $value === '';

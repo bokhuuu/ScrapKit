@@ -78,7 +78,7 @@ class ScraperManager
                     'error'  => $e->getMessage(),
                 ]);
             })
-            ->name($profile->getName() . '-run-' . $run->id)
+            ->name($this->buildBatchName($profile->getName(), $run->id))
             ->dispatch();
     }
 
@@ -94,5 +94,14 @@ class ScraperManager
         $this->runRepository->markAsCancelled($runId);
 
         Log::info('Scrape run cancelled', ['run_id' => $runId]);
+    }
+
+    private function buildBatchName(string $source, int $runId): string
+    {
+        return str_replace(
+            ['{source}', '{id}'],
+            [$source, $runId],
+            config('scraper.batch_name_pattern'),
+        );
     }
 }

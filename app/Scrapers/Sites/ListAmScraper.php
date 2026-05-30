@@ -26,10 +26,6 @@ class ListAmScraper extends BaseScraper
         parent::__construct($profile);
     }
 
-    /**
-     * Extend base Chrome flags with stealth configuration.
-     * This makes our browser indistinguishable from a real human's Chrome.
-     */
     protected function chromeArguments(): array
     {
         return [
@@ -39,15 +35,7 @@ class ListAmScraper extends BaseScraper
     }
 
     /**
-     * Visit one index page (listing grid) and collect all detail page URLs.
-     *
-     * Flow:
-     *   1. Build the paginated URL from the profile
-     *   2. Navigate to it
-     *   3. Inject JS stealth patches
-     *   4. Find all listing cards on the page
-     *   5. Extract the href from each card's link
-     *   6. Return the full URLs
+     * Visit one index page and collect all detail page URLs.
      */
     public function crawlIndexPage(int $page): array
     {
@@ -58,9 +46,6 @@ class ListAmScraper extends BaseScraper
 
         $urls = [];
 
-        // Each card on the index page matches div.gl
-        // Inside each card there is an <a href="/en/item/XXXXXXX">
-        // We collect every href and prefix with base URL
         $links = $this->browser->elements(
             $this->profile->getIndexSelectors()['card_link']
         );
@@ -72,8 +57,6 @@ class ListAmScraper extends BaseScraper
                 continue;
             }
 
-            // Some hrefs are relative (/en/item/123), some absolute
-            // Normalize to always full URL
             $urls[] = str_starts_with($href, 'http')
                 ? $href
                 : $this->profile->getBaseUrl() . $href;
@@ -83,13 +66,8 @@ class ListAmScraper extends BaseScraper
     }
 
     /**
-     * Visit one detail page (single listing) and extract all available fields.
-     *
-     * Flow:
-     *   1. Navigate to the listing URL
-     *   2. Inject JS stealth patches
-     *   3. Extract each field using profile selectors
-     *   4. Return raw key-value array - pipeline will clean and normalize
+     * Visit one detail page and extract all available fields.
+     * Returns raw key-value array - pipeline cleans and normalizes.
      */
     public function crawlDetailPage(string $url): array
     {
@@ -99,38 +77,94 @@ class ListAmScraper extends BaseScraper
         $selectors = $this->profile->getDetailSelectors();
 
         return [
-            'external_id'        => $this->extractSourceId($url),
-            'url'                => $url,
+            'external_id'         => $this->extractSourceId($url),
+            'url'                 => $url,
             'source_profile_name' => $this->profile->getName(),
-            'listing_type'       => 'sale',
-            'property_type'      => 'apartment',
-            'price'              => $this->extractPrice($selectors),
-            'currency'           => $this->extractCurrency($selectors),
-            'price_per_sqm'      => null,
-            'location'           => $this->safeExtract($selectors['location']),
-            'district'           => null,
-            'area'               => $this->extractSpecByLabel($selectors['area']),
-            'rooms'              => $this->extractSpecByLabel($selectors['rooms']),
-            'floor'              => $this->extractSpecByLabel($selectors['floor']),
-            'total_floors'       => $this->extractSpecByLabel($selectors['floor_total']),
-            'building_type'      => $this->extractSpecByLabel($selectors['building_type']),
-            'description'        => $this->safeExtract($selectors['description']),
-            'phone'              => $this->extractPhone($selectors),
-            'is_new_building'    => $this->extractSpecByLabel($selectors['new_construction']),
-            'condition'          => $this->extractSpecByLabel($selectors['renovation']),
-            'images'             => $this->extractImageUrls($selectors),
-            'listing_date'       => $this->extractListingDate($selectors),
-            'scraped_at'         => $this->scrapedAt(),
+            'listing_type'        => 'sale',
+            'property_type'       => 'apartment',
+            'price'               => $this->extractPrice($selectors),
+            'currency'            => $this->extractCurrency($selectors),
+            'price_per_sqm'       => null,
+            'location'            => $this->safeExtract($selectors['location']),
+            'district'            => $this->extractDistrict(),
+            'area'                => $this->extractSpecByLabel($selectors['area']),
+            'rooms'               => $this->extractSpecByLabel($selectors['rooms']),
+            'bathrooms'           => $this->extractSpecByLabel($selectors['bathrooms']),
+            'floor'               => $this->extractSpecByLabel($selectors['floor']),
+            'total_floors'        => $this->extractSpecByLabel($selectors['floor_total']),
+            'ceiling_height'      => $this->extractSpecByLabel($selectors['ceiling_height']),
+            'building_type'       => $this->extractSpecByLabel($selectors['building_type']),
+            'is_new_building'     => $this->extractSpecByLabel($selectors['new_construction']),
+            'condition'           => $this->extractSpecByLabel($selectors['renovation']),
+            'agency_name'         => $this->extractAgencyName(),
+            'phone'               => $this->extractPhone($selectors),
+            'image_urls'          => $this->extractImageUrls($selectors),
+            'listing_date'        => $this->extractListingDate($selectors),
+            'scraped_at'          => $this->scrapedAt(),
         ];
     }
 
     /**
+     * Extract district by matching document.title against known Yerevan districts.
+     * Falls back to aliases (e.g. "the center" → "Kentron").
+     * Returns null if no district found - listing may be outside Yerevan.
+     */
+
+    private function extractDistrict(): ?string
+    {
+        try {
+            $result = $this->browser->script("return document.title;");
+            $title = $result[0] ?? '';
+
+            if ($title === '') {
+                return null;
+            }
+
+            foreach ($this->profile->getDistricts() as $district) {
+                if (stripos($title, $district) !== false) {
+                    return $district;
+                }
+            }
+
+            foreach ($this->profile->getDistrictAliases() as $alias => $district) {
+                if (stripos($title, $alias) !== false) {
+                    return $district;
+                }
+            }
+
+            return null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Extract agency name from the agency badge on the detail page.
+     *
+     * list.am shows a badge next to the listing code.
+     * The badge uses obfuscated class span.ge5 - we match by text content instead.
+     * Owner listings show no Agency badge - returns null in that case.
+     */
+    private function extractAgencyName(): ?string
+    {
+        try {
+            $result = $this->browser->script("
+            const spans = document.querySelectorAll('span.ge5');
+            for (const span of spans) {
+                if (span.textContent.trim() === 'Agency') return 'Agency';
+            }
+            return null;
+        ");
+
+            return $result[0] ?? null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * Extract price from the content attribute of the price element.
-     *
-     * list.am stores the clean numeric price in:
-     *   <span itemprop="price" content="150000">$150,000</span>
-     *
-     * Reading content="" gives us "150000" - no formatting to clean.
+     * list.am stores the clean numeric price in content="" to avoid parsing formatted text.
      */
     private function extractPrice(array $selectors): ?string
     {
@@ -142,10 +176,7 @@ class ListAmScraper extends BaseScraper
     }
 
     /**
-     * Extract currency from the priceCurrency meta element.
-     *
-     * list.am stores currency in:
-     *   <meta itemprop="priceCurrency" content="USD">
+     * Extract currency from the priceCurrency meta element content attribute.
      */
     private function extractCurrency(array $selectors): ?string
     {
@@ -156,19 +187,6 @@ class ListAmScraper extends BaseScraper
         }
     }
 
-    /**
-     * Extract phone number - requires auth + button click.
-     *
-     * list.am hides phone numbers behind a "Call" button.
-     * Clicking it reveals the number only if the user is logged in.
-     * Auth is handled by the auth strategy before this scraper runs.
-     *
-     * Flow:
-     *   1. Check if the call button exists
-     *   2. Click it
-     *   3. Wait for the phone number to appear in the DOM
-     *   4. Read and return it
-     */
     private function extractPhone(array $selectors): ?string
     {
         try {
@@ -177,7 +195,6 @@ class ListAmScraper extends BaseScraper
             }
 
             $this->ensureAuthenticated();
-
             $this->click($selectors['call_button']);
             $this->waitFor($selectors['phone_number']);
 
@@ -188,43 +205,33 @@ class ListAmScraper extends BaseScraper
     }
 
     /**
-     * Extract a spec value by its label text from the attribute blocks.
-     *
-     * list.am renders all specs identically - same classes on every field.
-     * CSS selectors cannot distinguish floor from rooms from area.
-     * We find the right block by matching the label text instead.
-     *
-     * Handles two layouts:
-     * Normal:   first p = value, second p = label  (Floor Area, Floor, Rooms)
-     * Reversed: first p = label, second p = value  (Construction Type)
+     * Extract a spec value by matching its label text in the attribute blocks.
+     * list.am renders all specs with identical CSS classes - label text is the only differentiator.
+     * Handles both layout orders: value-first and label-first.
      */
     private function extractSpecByLabel(string $label): ?string
     {
         $result = $this->browser->script("
-        const blocks = document.querySelectorAll('.at2 .attr-info-wraper');
-        for (const block of blocks) {
-            const paragraphs = block.querySelectorAll('p');
-            if (paragraphs.length < 2) continue;
+            const blocks = document.querySelectorAll('.at2 .attr-info-wraper');
+            for (const block of blocks) {
+                const paragraphs = block.querySelectorAll('p');
+                if (paragraphs.length < 2) continue;
 
-            const first  = paragraphs[0].textContent.trim();
-            const second = paragraphs[1].textContent.trim();
+                const first  = paragraphs[0].textContent.trim();
+                const second = paragraphs[1].textContent.trim();
 
-            if (second === '{$label}') return first;
-            if (first  === '{$label}') return second;
-        }
-        return null;
-    ");
+                if (second === '{$label}') return first;
+                if (first  === '{$label}') return second;
+            }
+            return null;
+        ");
 
         return $result[0] ?? null;
     }
 
     /**
-     * Extract listing date from the datePosted meta element.
-     *
-     * list.am stores the clean ISO date in the content attribute:
-     *   <span itemprop="datePosted" content="2026-05-25T09:20:09+00:00">
-     *
-     * We read content="" to get a parseable datetime string.
+     * Extract listing date from the datePosted meta element content attribute.
+     * Returns ISO datetime string or null if not present.
      */
     private function extractListingDate(array $selectors): ?string
     {
@@ -237,10 +244,8 @@ class ListAmScraper extends BaseScraper
 
     /**
      * Collect all listing image URLs from the photo gallery.
-     *
-     * list.am serves images from s.list.am/f/ - we select by src pattern
-     * since the img elements have no unique class or id.
-     * URLs are stored as JSON array - fetched on demand, not downloaded.
+     * Normalizes protocol-relative URLs (//) to full https:// URLs.
+     * Returns empty array if no images found.
      */
     private function extractImageUrls(array $selectors): array
     {

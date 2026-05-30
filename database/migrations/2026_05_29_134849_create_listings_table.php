@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Schema;
  * Creates the listings table.
  *
  * Stores normalized real estate listing data scraped from external sources.
- * Compound unique index on external_id + source_profile_name prevents duplicates.
- * Column names match ListingDTO::toArray() exactly.
+ * Columns match ListingDTO::toArray() exactly - never add a column here
+ * without adding the corresponding property to the DTO.
  */
 return new class extends Migration
 {
@@ -34,40 +34,28 @@ return new class extends Migration
 
             // Size
             $table->decimal('area', 8, 2)->nullable();
-            $table->decimal('living_area', 8, 2)->nullable();
-            $table->decimal('kitchen_area', 8, 2)->nullable();
 
             // Property details
             $table->unsignedTinyInteger('rooms')->nullable();
+            $table->unsignedTinyInteger('bathrooms')->nullable();
             $table->unsignedTinyInteger('floor')->nullable();
             $table->unsignedTinyInteger('total_floors')->nullable();
-            $table->unsignedSmallInteger('year_built')->nullable();
             $table->decimal('ceiling_height', 4, 2)->nullable();
             $table->string('building_type')->nullable();
             $table->string('condition')->nullable();
             $table->boolean('is_new_building')->nullable();
 
-            // Features
-            $table->boolean('has_balcony')->nullable();
-            $table->boolean('has_furniture')->nullable();
-            $table->boolean('has_elevator')->nullable();
-            $table->boolean('has_parking')->nullable();
-            $table->boolean('has_garage')->nullable();
-
             // Location
-            $table->string('country')->nullable();
-            $table->string('city')->nullable();
             $table->string('district')->nullable();
             $table->string('address')->nullable();
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
 
             // Contact
             $table->string('phone')->nullable();
+            $table->string('agency_name')->nullable();
 
             // Content
-            $table->text('description')->nullable();
             $table->json('images')->nullable();
+            $table->json('extras')->nullable();
 
             // Timestamps
             $table->timestamp('listing_date')->nullable();

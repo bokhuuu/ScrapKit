@@ -25,7 +25,7 @@ class ThrottledRetryMiddleware
             }
 
             $job->release(
-                $job->attempts() * 30
+                $job->attempts() * config('scraper.retry_base_delay_s')
             );
         }
     }

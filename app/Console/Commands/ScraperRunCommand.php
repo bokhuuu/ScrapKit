@@ -59,6 +59,6 @@ class ScraperRunCommand extends Command
             return null;
         }
 
-        return new ($profiles[$source])();
+        return app($profiles[$source]);
     }
 }

@@ -27,17 +27,18 @@ final class NormalizeStringFieldsStage implements PipelineStageInterface
         $dto->currency = $this->normalizeString($dto->currency);
         $dto->buildingType = $this->normalizeString($dto->buildingType);
         $dto->condition = $this->normalizeString($dto->condition);
-        $dto->country = $this->normalizeString($dto->country);
-        $dto->city = $this->normalizeString($dto->city);
         $dto->district = $this->normalizeString($dto->district);
         $dto->address = $this->normalizeString($dto->address);
         $dto->phone = $this->normalizeString($dto->phone);
-        $dto->title = $this->normalizeString($dto->title);
-        $dto->description = $this->normalizeString($dto->description);
+        $dto->agencyName = $this->normalizeString($dto->agencyName);
 
         return $dto;
     }
 
+    /**
+     * Trim whitespace and convert empty strings to null.
+     * Null input returns null - safe to call on optional fields.
+     */
     private function normalizeString(?string $value): ?string
     {
         if ($value === null) {

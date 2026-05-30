@@ -93,6 +93,13 @@ Entry (artisan / API)
                     └── Pipeline Stages
                           └── ListingRepository → MySQL
                                 └── Events → Notifiers / ExportManager
+
+Pipeline (default):
+  NormalizeStringFieldsStage → ValidateRequiredFieldsStage → CleanPriceStage
+  → CleanPhoneStage → CleanAreaStage → CalculatePricePerSqmStage
+  → CleanBuildingTypeStage → DeduplicateStage
+  + FilterCurrencyStage (profile-injected)
+  + EnrichDistrictStage (profile-injected)
 ```
 
 ## How It Avoids Detection
@@ -184,7 +191,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 
 ### Database & Repository
 
-- Listings migration (with `new_construction`, `renovation`, `images` columns)
+- Listings migration (columns match ListingDTO exactly — bathrooms, agency_name, ceiling_height, extras, price_per_sqm)
 - ScraperRuns migration
 - `Listing` model, `ScraperRun` model
 - `ListingRepository`, `ScraperRunRepository`
@@ -193,12 +200,14 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 
 - `PipelineStageInterface` contract
 - `NormalizeStringFieldsStage`
-- `ValidateRequiredFieldsStage`
+- `ValidateRequiredFieldsStage`- required fields injected from profile
 - `CleanPriceStage`, `CleanPhoneStage`, `CleanAreaStage`, `CleanBuildingTypeStage`
 - `DeduplicateStage` - URL-based, halts early on duplicate
-- `EnrichDistrictStage`
+- `EnrichDistrictStage`- real estate specific, injected via ListAmProfile
 - `ScraperPipeline` orchestrator
 - `InvalidListingException`, `DuplicateListingException`
+- `CalculatePricePerSqmStage` - derives price/sqm after price and area are clean
+- `FilterCurrencyStage` - profile-injected, drops non-accepted currencies
 
 ### Browser Automation
 
@@ -296,7 +305,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 
 | Task                                             | Status |
 | ------------------------------------------------ | ------ |
-| Scrape apartments - list.am/category/60          | -      |
+| Scrape apartments - list.am/category/60          | Done   |
 | Scrape commercial for sale - list.am/category/56 | -      |
 | Scrape commercial for rent - list.am/category/58 | -      |
 | Data cleaning and normalization                  | -      |

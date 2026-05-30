@@ -299,7 +299,7 @@ abstract class BaseScraper
     protected function pauseForHuman(): void
     {
         $base   = $this->profile->getRequestDelay() * 1000;
-        $jitter = (int) ($base * 0.3);
+        $jitter = (int) ($base * (float) config('scraper.request_delay_jitter'));
 
         usleep(random_int($base - $jitter, $base + $jitter) * 1000);
     }

@@ -7,6 +7,7 @@ namespace App\Scrapers\Base;
 use App\Repositories\ListingRepository;
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
+use App\Scrapers\Pipeline\Stages\CalculatePricePerSqmStage;
 use App\Scrapers\Pipeline\Stages\CleanAreaStage;
 use App\Scrapers\Pipeline\Stages\CleanBuildingTypeStage;
 use App\Scrapers\Pipeline\Stages\CleanPhoneStage;
@@ -34,9 +35,19 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     /**
      * Known districts for the target city.
      * Override in profiles that use EnrichDistrictStage.
-     * Returns empty array by default — most sites do not need district enrichment.
+     * Returns empty array by default - most sites do not need district enrichment.
      */
     public function getDistricts(): array
+    {
+        return [];
+    }
+
+    /**
+     * Colloquial district name aliases for the target city.
+     * Override in profiles where the site uses non-standard district names.
+     * Returns empty array by default - most sites use official names only.
+     */
+    public function getDistrictAliases(): array
     {
         return [];
     }
@@ -57,6 +68,15 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     public function getRequestDelay(): int
     {
         return (int) config('scraper.default_request_delay_s');
+    }
+
+    /**
+     * Maximum pages to scrape per run.
+     * Set SCRAPER_MAX_PAGES=2 locally for fast testing.
+     */
+    public function getMaxPages(): int
+    {
+        return (int) config('scraper.default_max_pages');
     }
 
     /**
@@ -95,6 +115,7 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
             new CleanPriceStage(),
             new CleanPhoneStage(),
             new CleanAreaStage(),
+            new CalculatePricePerSqmStage(),
             new CleanBuildingTypeStage(),
             new DeduplicateStage(new ListingRepository()),
 

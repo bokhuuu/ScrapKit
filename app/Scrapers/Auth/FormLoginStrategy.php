@@ -30,7 +30,7 @@ class FormLoginStrategy
         private readonly string $successSelector,
         private readonly string $email,
         private readonly string $password,
-        private readonly int $waitSeconds = 10,
+        private readonly ?int $waitSeconds = null,
     ) {}
 
     /**
@@ -48,7 +48,10 @@ class FormLoginStrategy
         $this->browser->click($this->submitSelector);
 
         try {
-            $this->browser->waitFor($this->successSelector, $this->waitSeconds);
+            $this->browser->waitFor(
+                $this->successSelector,
+                $this->waitSeconds ?? (int) config('scraper.element_wait_timeout_s'),
+            );
         } catch (\Throwable $e) {
             throw new RuntimeException(
                 "Login failed - success selector [{$this->successSelector}] never appeared after submitting form.",

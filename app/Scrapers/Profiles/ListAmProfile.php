@@ -6,12 +6,13 @@ namespace App\Scrapers\Profiles;
 
 use App\Scrapers\Base\AbstractScraperProfile;
 use App\Scrapers\Pipeline\Stages\EnrichDistrictStage;
+use App\Scrapers\Pipeline\Stages\FilterCurrencyStage;
 use App\Scrapers\Sites\ListAmScraper;
 
 /**
  * Scraper profile for list.am : Armenia's largest classifieds platform.
  * Targets the Apartments for Sale category (category/60) in Yerevan.
- * Used for Colliers International market entry research.
+ * Used for International market entry research.
  */
 class ListAmProfile extends AbstractScraperProfile
 {
@@ -26,28 +27,11 @@ class ListAmProfile extends AbstractScraperProfile
     }
 
     /**
-     * list.am is sensitive to rapid requests. 3 seconds prevents IP bans.
-     */
-    public function getRequestDelay(): int
-    {
-        return 3;
-    }
-
-    /**
      * list.am uses path-based pagination: /category/60/1, /category/60/2
      */
     public function getIndexUrlPattern(): string
     {
-        return 'https://www.list.am/en/category/60/{page}';
-    }
-
-    /**
-     * 50 pages × ~20 listings = ~1000 apartments per run.
-     * Sufficient for district-level price analysis.
-     */
-    public function getMaxPages(): int
-    {
-        return 50;
+        return 'https://www.list.am/en/category/60/{page}?n=1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9%2C10%2C13%2C11%2C12';
     }
 
     /**
@@ -74,25 +58,44 @@ class ListAmProfile extends AbstractScraperProfile
     public function getDetailSelectors(): array
     {
         return [
-            // CSS selectors - extracted directly
-            'price'       => 'span[itemprop="price"]',
-            'currency'    => 'meta[itemprop="priceCurrency"]',
-            'location'    => '#poi-map-anchor',
-            'description' => 'div.body[itemprop="description"]',
-            'call_button' => 'a.call',
+            // CSS selectors
+            'price'        => 'span[itemprop="price"]',
+            'currency'     => 'meta[itemprop="priceCurrency"]',
+            'location'     => '#poi-map-anchor',
+            'call_button'  => 'a.call',
             'phone_number' => 'span.phone',
-            'listing_date'     => 'span[itemprop="datePosted"]',
-            'images' => 'img[src*="s.list.am/f/"]',
+            'listing_date' => 'span[itemprop="datePosted"]',
+            'images'       => 'img[src*="s.list.am/f/"]',
 
-            // Label strings - extracted via extractSpecByLabel()
-            'area'          => 'Floor Area',
-            'floor'         => 'Floor',
-            'floor_total'   => 'Floors in the Building',
-            'rooms'         => 'Number of Rooms',
-            'building_type' => 'Construction Type',
+            // Label strings - used by extractSpecByLabel()
+            'area'             => 'Floor Area',
+            'floor'            => 'Floor',
+            'floor_total'      => 'Floors in the Building',
+            'rooms'            => 'Number of Rooms',
+            'bathrooms'        => 'Number of Bathrooms',
+            'ceiling_height'   => 'Ceiling Height',
+            'building_type'    => 'Construction Type',
             'new_construction' => 'New Construction',
             'renovation'       => 'Renovation',
         ];
+    }
+
+    /**
+     * list.am is sensitive to rapid requests.
+     * Configurable via LISTAM_REQUEST_DELAY in .env.
+     */
+    public function getRequestDelay(): int
+    {
+        return (int) config('scraper.profile_config.listam.request_delay');
+    }
+
+    /**
+     * Pages to scrape per run.
+     * Configurable via LISTAM_MAX_PAGES in .env.
+     */
+    public function getMaxPages(): int
+    {
+        return (int) config('scraper.profile_config.listam.max_pages');
     }
 
     /**
@@ -139,6 +142,7 @@ class ListAmProfile extends AbstractScraperProfile
     {
         return [
             ...parent::getPipelineStages(),
+            new FilterCurrencyStage(['USD']),
             new EnrichDistrictStage($this->getDistricts()),
         ];
     }
@@ -150,5 +154,17 @@ class ListAmProfile extends AbstractScraperProfile
     public function getScraperClass(): string
     {
         return ListAmScraper::class;
+    }
+
+    /**
+     * Districts that appear as "the center" in h1 titles on list.am.
+     * list.am uses colloquial names - we normalize to official district names.
+     */
+    public function getDistrictAliases(): array
+    {
+        return [
+            'the center' => 'Kentron',
+            'center'     => 'Kentron',
+        ];
     }
 }

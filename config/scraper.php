@@ -92,6 +92,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Request Delay Jitter
+    |--------------------------------------------------------------------------
+    |
+    | Fraction of the base delay applied as random variance (±).
+    | 0.3 means ±30% - a 2s delay becomes anywhere from 1.4s to 2.6s.
+    | Increase for more unpredictable timing, decrease for more consistent pacing.
+    |
+    */
+
+    'request_delay_jitter' => (float) env('SCRAPER_DELAY_JITTER', 0.3),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stealth - Browser Languages
+    |--------------------------------------------------------------------------
+    |
+    | Languages reported to sites via navigator.languages JS property.
+    | Comma-separated. Match the locale of your target site.
+    | list.am: en-US,en - Armenian site but English interface targeted.
+    | A Georgian site: ka-GE,ka
+    |
+    */
+
+    'browser_languages' => env('SCRAPER_BROWSER_LANGUAGES', 'en-US,en'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Browser Pool
     |--------------------------------------------------------------------------
     |
@@ -134,4 +161,68 @@ return [
     'profiles' => [
         'listam' => \App\Scrapers\Profiles\ListAmProfile::class,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Job Middleware
+    |--------------------------------------------------------------------------
+    |
+    | rate_limit_window_s  - rolling window for concurrent job throttling.
+    | rate_limit_release_s - how long to wait before retrying a throttled job.
+    | retry_base_delay_s   - multiplied by attempt count for progressive backoff.
+    |                        attempt 1 = 30s, attempt 2 = 60s, attempt 3 = 90s.
+    |
+    */
+
+    'rate_limit_window_s'  => (int) env('SCRAPER_RATE_LIMIT_WINDOW', 1),
+    'rate_limit_release_s' => (int) env('SCRAPER_RATE_LIMIT_RELEASE', 5),
+    'retry_base_delay_s'   => (int) env('SCRAPER_RETRY_BASE_DELAY', 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Max Pages
+    |--------------------------------------------------------------------------
+    |
+    | Maximum pages to scrape per run by default.
+    | Set to 2 locally for fast testing, 50+ in production for full runs.
+    |
+    */
+
+    'default_max_pages' => (int) env('SCRAPER_MAX_PAGES', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Per-Profile Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Site-specific settings and credentials.
+    | Add a new entry here for each scraping target.
+    | Credentials are never hardcoded - always read from .env.
+    |
+    */
+
+    'profile_config' => [
+        'listam' => [
+            'request_delay' => env('LISTAM_REQUEST_DELAY', 3),
+            'max_pages'     => env('LISTAM_MAX_PAGES', 50),
+            'auth' => [
+                'email'    => env('LISTAM_EMAIL'),
+                'password' => env('LISTAM_PASSWORD'),
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Batch Name Pattern
+    |--------------------------------------------------------------------------
+    |
+    | Pattern used to name Laravel Bus batches for identification in logs
+    | and Laravel Horizon. Supports two placeholders:
+    |   {source} - the profile name (e.g. listam)
+    |   {id}     - the scraper run ID
+    |
+    */
+
+    'batch_name_pattern' => env('SCRAPER_BATCH_NAME_PATTERN', '{source}-run-{id}'),
 ];
