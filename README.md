@@ -92,7 +92,10 @@ Entry (artisan / API)
               └── BaseScraper (Dusk)
                     └── Pipeline Stages
                           └── ListingRepository → MySQL
-                                └── Events → Notifiers / ExportManager
+                                └── Events
+                                      ├── ScrapeCompleted → TelegramNotifier + MailNotifier
+                                      ├── ScrapeFailed    → TelegramNotifier + MailNotifier
+                                      └── ListingSaved    → (future: webhooks, downstream sync)
 
 Pipeline (default):
   NormalizeStringFieldsStage → ValidateRequiredFieldsStage → CleanPriceStage
@@ -141,7 +144,7 @@ Configure in `app/Console/Kernel.php`. No cron setup needed beyond Laravel's sta
 - All scraper errors logged to `storage/logs/scraper.log` with full context
 - Failed queue jobs stored in `failed_jobs` table - inspectable and replayable
 - `ScraperRun` model tracks full lifecycle: `pending → running → completed / failed`
-- Telegram notification fired on `ScrapeFailed` event (Phase 8)
+- Telegram + email notification fired on `ScrapeFailed` and `ScrapeCompleted` events
 - Sentry integration planned for Phase 13
 
 ---
@@ -156,20 +159,20 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 
 ## Tech Stack
 
-| Layer              | Technology                  |
-| ------------------ | --------------------------- |
-| Framework          | Laravel 12, PHP 8.4         |
-| Browser automation | Laravel Dusk + ChromeDriver |
-| Queue              | Database → Redis (Phase 10) |
-| Cache              | Database → Redis (Phase 10) |
-| Queue monitoring   | Laravel Horizon (Phase 10)  |
-| Export             | Maatwebsite Excel           |
-| Notifications      | Telegram Bot SDK            |
-| Testing            | Pest                        |
-| Code style         | Laravel Pint (strict_types) |
-| Database           | MySQL (utf8mb4)             |
-| Deployment         | Docker + VPS Ubuntu 24.04   |
-| CI/CD              | GitHub Actions              |
+| Layer              | Technology                   |
+| ------------------ | ---------------------------- |
+| Framework          | Laravel 12, PHP 8.4          |
+| Browser automation | Laravel Dusk + ChromeDriver  |
+| Queue              | Database → Redis (Phase 10)  |
+| Cache              | Database → Redis (Phase 10)  |
+| Queue monitoring   | Laravel Horizon (Phase 10)   |
+| Export             | Maatwebsite Excel            |
+| Notifications      | Telegram Bot SDK + SMTP Mail |
+| Testing            | Pest                         |
+| Code style         | Laravel Pint (strict_types)  |
+| Database           | MySQL (utf8mb4)              |
+| Deployment         | Docker + VPS Ubuntu 24.04    |
+| CI/CD              | GitHub Actions               |
 
 ---
 
@@ -191,7 +194,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 
 ### Database & Repository
 
-- Listings migration (columns match ListingDTO exactly — bathrooms, agency_name, ceiling_height, extras, price_per_sqm)
+- Listings migration (columns match ListingDTO exactly - bathrooms, agency_name, ceiling_height, extras, price_per_sqm)
 - ScraperRuns migration
 - `Listing` model, `ScraperRun` model
 - `ListingRepository`, `ScraperRunRepository`
@@ -243,11 +246,15 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - `scraper:status` - check latest run state for a source
 - `scraper:cancel` - cancel an active run by ID
 
-### ⬜ Events & Notifications
+### Events & Notifications
 
 - `ListingSaved`, `ScrapeFailed`, `ScrapeCompleted` events
-- `TelegramNotifier`, `SlackNotifier`
-- `NotifierInterface`
+- `NotifierInterface` contract
+- `TelegramNotifier` - instant alerts via Telegram bot
+- `MailNotifier` - professional email notifications via SMTP
+- `SendScrapeCompletedNotification` listener
+- `SendScrapeFailedNotification` listener
+- Profile-driven - each profile declares which notifiers fire
 
 ### ⬜ Export Layer
 
@@ -322,5 +329,6 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile. S
 - JavaScript-rendered pages require ChromeDriver - cannot use lightweight HTTP-only scraping for all sites
 - BrowserPool deferred to Phase 10 - currently single browser instance per job
 - No proxy rotation yet - suitable for polite scraping volumes, not aggressive bulk extraction
+- Image galleries on list.am load lazily via JavaScript - only the first image is captured per listing; full gallery collection would require clicking through each photo
 
 ---

@@ -7,6 +7,7 @@ namespace App\Scrapers\Base;
 use App\Repositories\ListingRepository;
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
+use App\Scrapers\Notifications\TelegramNotifier;
 use App\Scrapers\Pipeline\Stages\CalculatePricePerSqmStage;
 use App\Scrapers\Pipeline\Stages\CleanAreaStage;
 use App\Scrapers\Pipeline\Stages\CleanBuildingTypeStage;
@@ -129,7 +130,7 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
      */
     public function getNotifiers(): array
     {
-        return ['telegram'];
+        return [TelegramNotifier::class];
     }
 
     /**

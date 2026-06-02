@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Events\ScrapeCompleted;
+use App\Repositories\ListingRepository;
 use App\Repositories\ScraperRunRepository;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,9 +30,17 @@ class ScrapeCompletedJob implements ShouldQueue
         private readonly string $source,
     ) {}
 
-    public function handle(ScraperRunRepository $repository): void
+    public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository): void
     {
-        $repository->markAsCompleted($this->scraperRunId);
+        $runRepository->markAsCompleted($this->scraperRunId);
+
+        $listingCount = $listingRepository->countBySource($this->source);
+
+        event(new ScrapeCompleted(
+            scraperRunId: $this->scraperRunId,
+            source: $this->source,
+            listingCount: $listingCount,
+        ));
 
         Log::info('Scrape run completed', [
             'run_id' => $this->scraperRunId,

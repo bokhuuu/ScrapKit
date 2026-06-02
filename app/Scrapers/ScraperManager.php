@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Scrapers;
 
 use App\Enums\ScraperState;
+use App\Events\ScrapeFailed;
 use App\Jobs\CrawlIndexPageJob;
 use App\Jobs\ScrapeCompletedJob;
 use App\Repositories\ScraperRunRepository;
@@ -71,6 +72,12 @@ class ScraperManager
             })
             ->catch(function (Batch $batch, Throwable $e) use ($run, $profile): void {
                 $this->runRepository->markAsFailed($run->id, $e->getMessage());
+
+                event(new ScrapeFailed(
+                    scraperRunId: $run->id,
+                    source: $profile->getName(),
+                    errorMessage: $e->getMessage(),
+                ));
 
                 Log::error('Scrape batch failed', [
                     'run_id' => $run->id,

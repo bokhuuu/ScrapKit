@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Events\ListingSaved;
 use App\Models\Listing;
 use Illuminate\Support\Collection;
 
@@ -30,10 +31,14 @@ class ListingRepository
      */
     public function updateOrCreate(array $data): Listing
     {
-        return Listing::updateOrCreate(
+        $listing = Listing::updateOrCreate(
             ['external_id' => $data['external_id'], 'source_profile_name' => $data['source_profile_name']],
             $data
         );
+
+        event(new ListingSaved($listing));
+
+        return $listing;
     }
 
     /**
@@ -64,6 +69,6 @@ class ListingRepository
      */
     public function countBySource(string $source): int
     {
-        return Listing::where('source', $source)->count();
+        return Listing::where('source_profile_name', $source)->count();
     }
 }

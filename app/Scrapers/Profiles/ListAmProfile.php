@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Scrapers\Profiles;
 
 use App\Scrapers\Base\AbstractScraperProfile;
+use App\Scrapers\Notifications\MailNotifier;
+use App\Scrapers\Notifications\TelegramNotifier;
 use App\Scrapers\Pipeline\Stages\EnrichDistrictStage;
 use App\Scrapers\Pipeline\Stages\FilterCurrencyStage;
 use App\Scrapers\Sites\ListAmScraper;
@@ -165,6 +167,18 @@ class ListAmProfile extends AbstractScraperProfile
         return [
             'the center' => 'Kentron',
             'center'     => 'Kentron',
+        ];
+    }
+
+    /**
+     * Notify via Telegram and email on scrape events.
+     * Both channels active for the Colliers deliverable.
+     */
+    public function getNotifiers(): array
+    {
+        return [
+            TelegramNotifier::class,
+            MailNotifier::class,
         ];
     }
 }
