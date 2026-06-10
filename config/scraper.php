@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+use App\Scrapers\Exports\CsvExporter;
+use App\Scrapers\Exports\ExcelExporter;
+use App\Scrapers\Exports\JsonExporter;
+use App\Scrapers\Profiles\ListAmProfile;
+use App\Scrapers\Profiles\Reports\ColliersExcelReport;
 
 return [
 
@@ -143,7 +148,7 @@ return [
 
     'default_concurrency' => (int) env('SCRAPER_CONCURRENCY', 3),
     'default_retry_times' => (int) env('SCRAPER_RETRY_TIMES', 3),
-    'default_timeout_s'   => (int) env('SCRAPER_TIMEOUT_S', 60),
+    'default_timeout_s' => (int) env('SCRAPER_TIMEOUT_S', 60),
 
     /*
     |--------------------------------------------------------------------------
@@ -159,7 +164,7 @@ return [
     */
 
     'profiles' => [
-        'listam' => \App\Scrapers\Profiles\ListAmProfile::class,
+        'listam' => ListAmProfile::class,
     ],
 
     /*
@@ -174,9 +179,9 @@ return [
     |
     */
 
-    'rate_limit_window_s'  => (int) env('SCRAPER_RATE_LIMIT_WINDOW', 1),
+    'rate_limit_window_s' => (int) env('SCRAPER_RATE_LIMIT_WINDOW', 1),
     'rate_limit_release_s' => (int) env('SCRAPER_RATE_LIMIT_RELEASE', 5),
-    'retry_base_delay_s'   => (int) env('SCRAPER_RETRY_BASE_DELAY', 30),
+    'retry_base_delay_s' => (int) env('SCRAPER_RETRY_BASE_DELAY', 30),
 
     /*
     |--------------------------------------------------------------------------
@@ -204,9 +209,9 @@ return [
     'profile_config' => [
         'listam' => [
             'request_delay' => env('LISTAM_REQUEST_DELAY', 3),
-            'max_pages'     => env('LISTAM_MAX_PAGES', 50),
+            'max_pages' => env('LISTAM_MAX_PAGES', 50),
             'auth' => [
-                'email'    => env('LISTAM_EMAIL'),
+                'email' => env('LISTAM_EMAIL'),
                 'password' => env('LISTAM_PASSWORD'),
             ],
         ],
@@ -250,9 +255,9 @@ return [
     |
     */
     'exporters' => [
-        'excel' => \App\Scrapers\Exports\ExcelExporter::class,
-        'csv'   => \App\Scrapers\Exports\CsvExporter::class,
-        'json'  => \App\Scrapers\Exports\JsonExporter::class,
-        'colliers_report' => \App\Scrapers\Profiles\Reports\ColliersExcelReport::class
+        'excel' => ExcelExporter::class,
+        'csv' => CsvExporter::class,
+        'json' => JsonExporter::class,
+        'colliers_report' => ColliersExcelReport::class,
     ],
 ];

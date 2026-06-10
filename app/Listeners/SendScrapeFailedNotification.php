@@ -17,12 +17,12 @@ class SendScrapeFailedNotification
 {
     public function handle(ScrapeFailed $event): void
     {
-        $profileClass = config('scraper.profiles.' . $event->source);
-        $profile      = app($profileClass);
+        $profileClass = config('scraper.profiles.'.$event->source);
+        $profile = app($profileClass);
 
         $payload = [
-            'source'        => $event->source,
-            'status'        => 'failed',
+            'source' => $event->source,
+            'status' => 'failed',
             'error' => $event->errorMessage,
         ];
 

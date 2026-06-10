@@ -37,7 +37,8 @@ class ColliersExcelReport implements ExporterInterface
     {
         $path = $this->buildPath();
 
-        Excel::store(new class($data) implements WithMultipleSheets {
+        Excel::store(new class($data) implements WithMultipleSheets
+        {
             public function __construct(private readonly array $data) {}
 
             public function sheets(): array
@@ -55,7 +56,7 @@ class ColliersExcelReport implements ExporterInterface
             }
         }, $path, 'local');
 
-        return storage_path('app/' . $path);
+        return storage_path('app/'.$path);
     }
 
     public function extension(): string
@@ -69,7 +70,7 @@ class ColliersExcelReport implements ExporterInterface
      */
     private function buildPath(): string
     {
-        $dir  = config('scraper.export_path');
+        $dir = config('scraper.export_path');
         $date = now()->format('d_m_Y');
 
         return "{$dir}/colliers_yerevan_report_{$date}.xlsx";
@@ -120,7 +121,7 @@ class AllListingsSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         return array_map(function ($row) {
-            return array_map(fn($col) => $row[$col] ?? null, $this->clientColumns);
+            return array_map(fn ($col) => $row[$col] ?? null, $this->clientColumns);
         }, $this->data);
     }
 }
@@ -146,20 +147,20 @@ class MarketOverviewSheet implements FromArray, WithHeadings, WithTitle
 
     public function array(): array
     {
-        $prices        = array_filter(array_column($this->data, 'price'));
-        $sqmPrices     = array_filter(array_column($this->data, 'price_per_sqm'));
-        $areas         = array_filter(array_column($this->data, 'area'));
-        $districts     = array_filter(array_column($this->data, 'district'));
-        $agencies      = array_filter(array_column($this->data, 'agency_name'));
+        $prices = array_filter(array_column($this->data, 'price'));
+        $sqmPrices = array_filter(array_column($this->data, 'price_per_sqm'));
+        $areas = array_filter(array_column($this->data, 'area'));
+        $districts = array_filter(array_column($this->data, 'district'));
+        $agencies = array_filter(array_column($this->data, 'agency_name'));
 
-        $avgPrice    = count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A';
-        $avgSqm      = count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A';
-        $avgArea     = count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A';
-        $medianPrice = count($prices)    ? $this->median(array_values($prices))                 : 'N/A';
+        $avgPrice = count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A';
+        $avgSqm = count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A';
+        $avgArea = count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A';
+        $medianPrice = count($prices) ? $this->median(array_values($prices)) : 'N/A';
 
         $newBuildingCount = count(array_filter(
             array_column($this->data, 'is_new_building'),
-            fn($v) => $v === true || $v === 1
+            fn ($v) => $v === true || $v === 1
         ));
 
         return [
@@ -180,7 +181,7 @@ class MarketOverviewSheet implements FromArray, WithHeadings, WithTitle
             ['', ''],
             ['--- MARKET COMPOSITION ---', ''],
             ['New Construction Listings',  $newBuildingCount],
-            ['New Construction %',         count($this->data) > 0 ? round($newBuildingCount / count($this->data) * 100, 1) . '%' : 'N/A'],
+            ['New Construction %',         count($this->data) > 0 ? round($newBuildingCount / count($this->data) * 100, 1).'%' : 'N/A'],
             ['Agency Listings',            count($agencies)],
             ['Owner Listings',             count($this->data) - count($agencies)],
         ];
@@ -190,7 +191,7 @@ class MarketOverviewSheet implements FromArray, WithHeadings, WithTitle
     {
         sort($values);
         $count = count($values);
-        $mid   = (int) floor($count / 2);
+        $mid = (int) floor($count / 2);
 
         return $count % 2 === 0
             ? round(($values[$mid - 1] + $values[$mid]) / 2, 2)
@@ -230,49 +231,49 @@ class DistrictAnalysisSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         $grouped = [];
-        $total   = count($this->data);
+        $total = count($this->data);
 
         foreach ($this->data as $row) {
-            $district            = $row['district'] ?? 'Unknown';
+            $district = $row['district'] ?? 'Unknown';
             $grouped[$district][] = $row;
         }
 
         $rows = [];
 
         foreach ($grouped as $district => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $areas     = array_filter(array_column($listings, 'area'));
-            $newCount  = count(array_filter(
+            $areas = array_filter(array_column($listings, 'area'));
+            $newCount = count(array_filter(
                 array_column($listings, 'is_new_building'),
-                fn($v) => $v === true || $v === 1
+                fn ($v) => $v === true || $v === 1
             ));
 
             $sortedPrices = array_values($prices);
             sort($sortedPrices);
-            $mid    = (int) floor(count($sortedPrices) / 2);
+            $mid = (int) floor(count($sortedPrices) / 2);
             $median = count($sortedPrices) > 0
                 ? (count($sortedPrices) % 2 === 0
                     ? round(($sortedPrices[$mid - 1] + $sortedPrices[$mid]) / 2, 2)
                     : round($sortedPrices[$mid], 2))
                 : null;
 
-            $count  = count($listings);
+            $count = count($listings);
 
             $rows[] = [
                 $district,
                 $count,
-                round($count / $total * 100, 1) . '%',
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
-                $median           ?? 'N/A',
+                round($count / $total * 100, 1).'%',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
+                $median ?? 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
                 $newCount,
-                $count > 0 ? round($newCount / $count * 100, 1) . '%' : 'N/A',
+                $count > 0 ? round($newCount / $count * 100, 1).'%' : 'N/A',
             ];
         }
 
-        usort($rows, fn($a, $b) => $b[1] <=> $a[1]);
+        usort($rows, fn ($a, $b) => $b[1] <=> $a[1]);
 
         return $rows;
     }
@@ -308,11 +309,11 @@ class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         $grouped = [];
-        $total   = count($this->data);
+        $total = count($this->data);
 
         foreach ($this->data as $row) {
-            $rooms            = $row['rooms'] ?? null;
-            $label            = $rooms !== null ? "{$rooms} Room" . ($rooms > 1 ? 's' : '') : 'Unknown';
+            $rooms = $row['rooms'] ?? null;
+            $label = $rooms !== null ? "{$rooms} Room".($rooms > 1 ? 's' : '') : 'Unknown';
             $grouped[$label][] = $row;
         }
 
@@ -321,23 +322,23 @@ class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
         $rows = [];
 
         foreach ($grouped as $label => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $areas     = array_filter(array_column($listings, 'area'));
-            $newCount  = count(array_filter(
+            $areas = array_filter(array_column($listings, 'area'));
+            $newCount = count(array_filter(
                 array_column($listings, 'is_new_building'),
-                fn($v) => $v === true || $v === 1
+                fn ($v) => $v === true || $v === 1
             ));
             $count = count($listings);
 
             $rows[] = [
                 $label,
                 $count,
-                round($count / $total * 100, 1) . '%',
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
+                round($count / $total * 100, 1).'%',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
-                $count > 0 ? round($newCount / $count * 100, 1) . '%' : 'N/A',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
+                $count > 0 ? round($newCount / $count * 100, 1).'%' : 'N/A',
             ];
         }
 
@@ -367,14 +368,14 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         $total = count($this->data);
-        $rows  = [];
+        $rows = [];
 
         // Construction type breakdown
         $rows[] = ['CONSTRUCTION TYPE', '', '', '', ''];
         $byType = [];
 
         foreach ($this->data as $row) {
-            $type            = $row['building_type'] ?? 'Unknown';
+            $type = $row['building_type'] ?? 'Unknown';
             $byType[$type][] = $row;
         }
 
@@ -382,13 +383,13 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
 
         foreach ($byType as $type => $listings) {
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $count     = count($listings);
+            $count = count($listings);
 
             $rows[] = [
                 '',
                 ucfirst($type),
                 $count,
-                round($count / $total * 100, 1) . '%',
+                round($count / $total * 100, 1).'%',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -399,7 +400,7 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
         $byCond = [];
 
         foreach ($this->data as $row) {
-            $cond            = $row['condition'] ?? 'Unknown';
+            $cond = $row['condition'] ?? 'Unknown';
             $byCond[$cond][] = $row;
         }
 
@@ -407,13 +408,13 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
 
         foreach ($byCond as $cond => $listings) {
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $count     = count($listings);
+            $count = count($listings);
 
             $rows[] = [
                 '',
                 $cond,
                 $count,
-                round($count / $total * 100, 1) . '%',
+                round($count / $total * 100, 1).'%',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -444,13 +445,13 @@ class PriceDistributionSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         $brackets = [
-            'Under $50,000'        => [0, 50000],
-            '$50,000 – $100,000'   => [50000, 100000],
-            '$100,000 – $150,000'  => [100000, 150000],
-            '$150,000 – $200,000'  => [150000, 200000],
-            '$200,000 – $300,000'  => [200000, 300000],
-            '$300,000 – $500,000'  => [300000, 500000],
-            'Above $500,000'       => [500000, PHP_INT_MAX],
+            'Under $50,000' => [0, 50000],
+            '$50,000 – $100,000' => [50000, 100000],
+            '$100,000 – $150,000' => [100000, 150000],
+            '$150,000 – $200,000' => [150000, 200000],
+            '$200,000 – $300,000' => [200000, 300000],
+            '$300,000 – $500,000' => [300000, 500000],
+            'Above $500,000' => [500000, PHP_INT_MAX],
         ];
 
         $buckets = array_fill_keys(array_keys($brackets), []);
@@ -470,18 +471,18 @@ class PriceDistributionSheet implements FromArray, WithHeadings, WithTitle
         }
 
         $total = count($this->data);
-        $rows  = [];
+        $rows = [];
 
         foreach ($buckets as $label => $listings) {
-            $count     = count($listings);
-            $areas     = array_filter(array_column($listings, 'area'));
+            $count = count($listings);
+            $areas = array_filter(array_column($listings, 'area'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
 
             $rows[] = [
                 $label,
                 $count,
-                $total > 0 ? round($count / $total * 100, 1) . '%' : '0%',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
+                $total > 0 ? round($count / $total * 100, 1).'%' : '0%',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -511,9 +512,9 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
 
     public function array(): array
     {
-        $total        = count($this->data);
-        $agencyData   = [];
-        $ownerCount   = 0;
+        $total = count($this->data);
+        $agencyData = [];
+        $ownerCount = 0;
 
         foreach ($this->data as $row) {
             $agency = $row['agency_name'] ?? null;
@@ -525,9 +526,9 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
             }
         }
 
-        uasort($agencyData, fn($a, $b) => count($b) <=> count($a));
+        uasort($agencyData, fn ($a, $b) => count($b) <=> count($a));
 
-        $rows   = [];
+        $rows = [];
         $rows[] = ['MARKET SPLIT', '', '', '', ''];
 
         $agencyTotal = array_sum(array_map('count', $agencyData));
@@ -535,7 +536,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = [
             'Agency Listings',
             $agencyTotal,
-            round($agencyTotal / $total * 100, 1) . '%',
+            round($agencyTotal / $total * 100, 1).'%',
             '',
             '',
         ];
@@ -543,7 +544,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = [
             'Owner Listings',
             $ownerCount,
-            round($ownerCount / $total * 100, 1) . '%',
+            round($ownerCount / $total * 100, 1).'%',
             '',
             '',
         ];
@@ -552,15 +553,15 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = ['TOP AGENCIES', '', '', '', ''];
 
         foreach (array_slice($agencyData, 0, 20, true) as $agency => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $count     = count($listings);
+            $count = count($listings);
 
             $rows[] = [
                 $agency,
                 $count,
-                round($count / $total * 100, 1) . '%',
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
+                round($count / $total * 100, 1).'%',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -594,11 +595,11 @@ class FloorSizeAnalysisSheet implements FromArray, WithHeadings, WithTitle
 
         // Floor range breakdown
         $floorBrackets = [
-            'Ground Floor (1)'   => [1, 1],
-            'Low Floors (2–3)'   => [2, 3],
-            'Mid Floors (4–7)'   => [4, 7],
+            'Ground Floor (1)' => [1, 1],
+            'Low Floors (2–3)' => [2, 3],
+            'Mid Floors (4–7)' => [4, 7],
             'High Floors (8–12)' => [8, 12],
-            'Top Floors (13+)'   => [13, PHP_INT_MAX],
+            'Top Floors (13+)' => [13, PHP_INT_MAX],
         ];
 
         $rows[] = ['FLOOR ANALYSIS', '', '', '', '', ''];
@@ -619,28 +620,28 @@ class FloorSizeAnalysisSheet implements FromArray, WithHeadings, WithTitle
         }
 
         foreach ($floorBuckets as $label => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $areas     = array_filter(array_column($listings, 'area'));
-            $count     = count($listings);
+            $areas = array_filter(array_column($listings, 'area'));
+            $count = count($listings);
 
             $rows[] = [
                 '',
                 $label,
                 $count,
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
             ];
         }
 
         // Size bracket breakdown
         $sizeBrackets = [
-            'Studio / Micro (under 40sqm)'  => [0, 40],
-            'Small (40–60 sqm)'             => [40, 60],
-            'Medium (60–80 sqm)'            => [60, 80],
-            'Large (80–120 sqm)'            => [80, 120],
-            'Extra Large (120sqm+)'         => [120, PHP_INT_MAX],
+            'Studio / Micro (under 40sqm)' => [0, 40],
+            'Small (40–60 sqm)' => [40, 60],
+            'Medium (60–80 sqm)' => [60, 80],
+            'Large (80–120 sqm)' => [80, 120],
+            'Extra Large (120sqm+)' => [120, PHP_INT_MAX],
         ];
 
         $rows[] = ['', '', '', '', '', ''];
@@ -662,18 +663,18 @@ class FloorSizeAnalysisSheet implements FromArray, WithHeadings, WithTitle
         }
 
         foreach ($sizeBuckets as $label => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $areas     = array_filter(array_column($listings, 'area'));
-            $count     = count($listings);
+            $areas = array_filter(array_column($listings, 'area'));
+            $count = count($listings);
 
             $rows[] = [
                 '',
                 $label,
                 $count,
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
             ];
         }
 
@@ -682,9 +683,9 @@ class FloorSizeAnalysisSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = ['CEILING HEIGHT PREMIUM', '', '', '', '', ''];
 
         $heightBrackets = [
-            'Standard (under 2.8m)'  => [0, 2.8],
+            'Standard (under 2.8m)' => [0, 2.8],
             'Comfortable (2.8–3.0m)' => [2.8, 3.0],
-            'High (3.0–3.5m)'        => [3.0, 3.5],
+            'High (3.0–3.5m)' => [3.0, 3.5],
             'Loft / Premium (3.5m+)' => [3.5, PHP_INT_MAX],
         ];
 
@@ -705,18 +706,18 @@ class FloorSizeAnalysisSheet implements FromArray, WithHeadings, WithTitle
         }
 
         foreach ($heightBuckets as $label => $listings) {
-            $prices    = array_filter(array_column($listings, 'price'));
+            $prices = array_filter(array_column($listings, 'price'));
             $sqmPrices = array_filter(array_column($listings, 'price_per_sqm'));
-            $areas     = array_filter(array_column($listings, 'area'));
-            $count     = count($listings);
+            $areas = array_filter(array_column($listings, 'area'));
+            $count = count($listings);
 
             $rows[] = [
                 '',
                 $label,
                 $count,
-                count($prices)    ? round(array_sum($prices) / count($prices), 2)       : 'N/A',
+                count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
-                count($areas)     ? round(array_sum($areas) / count($areas), 2)          : 'N/A',
+                count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
             ];
         }
 

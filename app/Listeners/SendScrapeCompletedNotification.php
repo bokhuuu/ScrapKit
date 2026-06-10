@@ -17,12 +17,12 @@ class SendScrapeCompletedNotification
 {
     public function handle(ScrapeCompleted $event): void
     {
-        $profileClass = config('scraper.profiles.' . $event->source);
-        $profile      = app($profileClass);
+        $profileClass = config('scraper.profiles.'.$event->source);
+        $profile = app($profileClass);
 
         $payload = [
-            'source'        => $event->source,
-            'status'        => 'completed',
+            'source' => $event->source,
+            'status' => 'completed',
             'listing_count' => $event->listingCount,
         ];
 

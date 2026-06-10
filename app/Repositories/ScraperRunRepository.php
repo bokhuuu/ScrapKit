@@ -47,6 +47,7 @@ class ScraperRunRepository
             'finished_at' => now(),
         ]);
     }
+
     /**
      * Mark a scraper run as failed.
      *

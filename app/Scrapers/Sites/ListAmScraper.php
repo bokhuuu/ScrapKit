@@ -59,7 +59,7 @@ class ListAmScraper extends BaseScraper
 
             $urls[] = str_starts_with($href, 'http')
                 ? $href
-                : $this->profile->getBaseUrl() . $href;
+                : $this->profile->getBaseUrl().$href;
         }
 
         return $urls;
@@ -77,30 +77,30 @@ class ListAmScraper extends BaseScraper
         $selectors = $this->profile->getDetailSelectors();
 
         return [
-            'external_id'         => $this->extractSourceId($url),
-            'url'                 => $url,
+            'external_id' => $this->extractSourceId($url),
+            'url' => $url,
             'source_profile_name' => $this->profile->getName(),
-            'listing_type'        => 'sale',
-            'property_type'       => 'apartment',
-            'price'               => $this->extractPrice($selectors),
-            'currency'            => $this->extractCurrency($selectors),
-            'price_per_sqm'       => null,
-            'location'            => $this->safeExtract($selectors['location']),
-            'district'            => $this->extractDistrict(),
-            'area'                => $this->extractSpecByLabel($selectors['area']),
-            'rooms'               => $this->extractSpecByLabel($selectors['rooms']),
-            'bathrooms'           => $this->extractSpecByLabel($selectors['bathrooms']),
-            'floor'               => $this->extractSpecByLabel($selectors['floor']),
-            'total_floors'        => $this->extractSpecByLabel($selectors['floor_total']),
-            'ceiling_height'      => $this->extractSpecByLabel($selectors['ceiling_height']),
-            'building_type'       => $this->extractSpecByLabel($selectors['building_type']),
-            'is_new_building'     => $this->extractSpecByLabel($selectors['new_construction']),
-            'condition'           => $this->extractSpecByLabel($selectors['renovation']),
-            'agency_name'         => $this->extractAgencyName(),
-            'phone'               => $this->extractPhone($selectors),
-            'image_urls'          => $this->extractImageUrls($selectors),
-            'listing_date'        => $this->extractListingDate($selectors),
-            'scraped_at'          => $this->scrapedAt(),
+            'listing_type' => 'sale',
+            'property_type' => 'apartment',
+            'price' => $this->extractPrice($selectors),
+            'currency' => $this->extractCurrency($selectors),
+            'price_per_sqm' => null,
+            'location' => $this->safeExtract($selectors['location']),
+            'district' => $this->extractDistrict(),
+            'area' => $this->extractSpecByLabel($selectors['area']),
+            'rooms' => $this->extractSpecByLabel($selectors['rooms']),
+            'bathrooms' => $this->extractSpecByLabel($selectors['bathrooms']),
+            'floor' => $this->extractSpecByLabel($selectors['floor']),
+            'total_floors' => $this->extractSpecByLabel($selectors['floor_total']),
+            'ceiling_height' => $this->extractSpecByLabel($selectors['ceiling_height']),
+            'building_type' => $this->extractSpecByLabel($selectors['building_type']),
+            'is_new_building' => $this->extractSpecByLabel($selectors['new_construction']),
+            'condition' => $this->extractSpecByLabel($selectors['renovation']),
+            'agency_name' => $this->extractAgencyName(),
+            'phone' => $this->extractPhone($selectors),
+            'image_urls' => $this->extractImageUrls($selectors),
+            'listing_date' => $this->extractListingDate($selectors),
+            'scraped_at' => $this->scrapedAt(),
         ];
     }
 
@@ -109,11 +109,10 @@ class ListAmScraper extends BaseScraper
      * Falls back to aliases (e.g. "the center" → "Kentron").
      * Returns null if no district found - listing may be outside Yerevan.
      */
-
     private function extractDistrict(): ?string
     {
         try {
-            $result = $this->browser->script("return document.title;");
+            $result = $this->browser->script('return document.title;');
             $title = $result[0] ?? '';
 
             if ($title === '') {
@@ -261,7 +260,7 @@ class ListAmScraper extends BaseScraper
                 }
 
                 $urls[] = str_starts_with($src, '//')
-                    ? 'https:' . $src
+                    ? 'https:'.$src
                     : $src;
             }
 

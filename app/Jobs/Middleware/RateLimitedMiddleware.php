@@ -27,7 +27,7 @@ class RateLimitedMiddleware
             ->allow($this->maxConcurrent)
             ->every(config('scraper.rate_limit_window_s'))
             ->then(
-                fn() => $next($job),
+                fn () => $next($job),
                 function () use ($job) {
                     $job->release(config('scraper.rate_limit_release_s'));
                 }

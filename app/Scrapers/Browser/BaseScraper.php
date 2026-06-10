@@ -28,6 +28,7 @@ use Throwable;
 abstract class BaseScraper
 {
     protected Browser $browser;
+
     protected ?AuthStrategyInterface $authStrategy = null;
 
     /**
@@ -59,7 +60,7 @@ abstract class BaseScraper
      */
     protected function createBrowser(): Browser
     {
-        $options = new ChromeOptions();
+        $options = new ChromeOptions;
         $options->addArguments($this->chromeArguments());
 
         $capabilities = DesiredCapabilities::chrome();
@@ -88,7 +89,7 @@ abstract class BaseScraper
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
-            '--window-size=' . config('scraper.browser_window_size'),
+            '--window-size='.config('scraper.browser_window_size'),
         ];
     }
 
@@ -233,7 +234,7 @@ abstract class BaseScraper
     protected function retry(Closure $action, ?int $attempts = null, ?int $delayMs = null): mixed
     {
         $resolvedAttempts = $attempts ?? (int) config('scraper.retry_attempts');
-        $resolvedDelay    = $delayMs  ?? (int) config('scraper.retry_delay_ms');
+        $resolvedDelay = $delayMs ?? (int) config('scraper.retry_delay_ms');
 
         $lastException = new \RuntimeException('All retry attempts failed.');
 
@@ -298,9 +299,14 @@ abstract class BaseScraper
      */
     protected function pauseForHuman(): void
     {
-        $base   = $this->profile->getRequestDelay() * 1000;
+        $base = $this->profile->getRequestDelay() * 1000;
         $jitter = (int) ($base * (float) config('scraper.request_delay_jitter'));
 
         usleep(random_int($base - $jitter, $base + $jitter) * 1000);
+    }
+
+    public function getBrowser(): Browser
+    {
+        return $this->browser;
     }
 }

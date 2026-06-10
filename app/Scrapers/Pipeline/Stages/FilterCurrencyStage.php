@@ -24,7 +24,7 @@ final class FilterCurrencyStage implements PipelineStageInterface
     {
         if ($dto->currency !== null && ! in_array($dto->currency, $this->acceptedCurrencies, true)) {
             throw new InvalidListingException(
-                "Currency '{$dto->currency}' is not accepted. Accepted: " . implode(', ', $this->acceptedCurrencies)
+                "Currency '{$dto->currency}' is not accepted. Accepted: ".implode(', ', $this->acceptedCurrencies)
             );
         }
 

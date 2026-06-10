@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Scrapers\Contracts;
 
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
+use Laravel\Dusk\Browser;
 
 /**
  * Contract every scraper profile must implement.
@@ -66,8 +67,9 @@ interface ScraperProfileInterface
 
     /**
      * Auth strategy for this site. Returns null if no login required.
+     * Browser is passed at runtime - profiles must not instantiate the browser themselves.
      */
-    public function getAuthStrategy(): ?AuthStrategyInterface;
+    public function getAuthStrategy(?Browser $browser = null): ?AuthStrategyInterface;
 
     /**
      * Seconds to wait between requests to avoid rate limiting and IP bans.

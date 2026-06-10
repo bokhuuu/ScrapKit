@@ -33,37 +33,38 @@ class ExportManager
      */
     public function run(string $source, int $scraperRunId): array
     {
-        $profileClass = config('scraper.profiles.' . $source);
-        $profile      = app($profileClass);
+        $profileClass = config('scraper.profiles.'.$source);
+        $profile = app($profileClass);
 
         $listings = $this->repository->findBySource($source);
 
         if ($listings->isEmpty()) {
             Log::warning('ExportManager: no listings found for run.', [
-                'source'         => $source,
+                'source' => $source,
                 'scraper_run_id' => $scraperRunId,
             ]);
 
             return [];
         }
 
-        $data  = $listings->map(fn($listing) => $listing->toArray())->toArray();
+        $data = $listings->map(fn ($listing) => $listing->toArray())->toArray();
         $paths = [];
 
         foreach ($profile->getExports() as $format) {
-            $exporterClass = config('scraper.exporters.' . $format);
+            $exporterClass = config('scraper.exporters.'.$format);
 
             if (! $exporterClass) {
                 Log::warning('ExportManager: unknown export format.', [
                     'format' => $format,
                     'source' => $source,
                 ]);
+
                 continue;
             }
 
             /** @var ExporterInterface $exporter */
             $exporter = app($exporterClass);
-            $paths[]  = $exporter->export($data, $profile);
+            $paths[] = $exporter->export($data, $profile);
 
             Log::info('ExportManager: export complete.', [
                 'format' => $format,

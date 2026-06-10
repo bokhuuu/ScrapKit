@@ -120,7 +120,7 @@ class CookieAuthStrategy implements AuthStrategyInterface
     private function saveCookies(): void
     {
         $path = $this->cookiePath();
-        $dir  = dirname($path);
+        $dir = dirname($path);
 
         if (! is_dir($dir)) {
             mkdir($dir, 0755, recursive: true);

@@ -10,7 +10,7 @@ use Carbon\Carbon;
  * Immutable data transfer object representing a single scraped listing.
  *
  * Created from raw scraper output via fromArray(), passed through the pipeline,
- * and persisted via toArray(). The pipeline may modify nullable fields - 
+ * and persisted via toArray(). The pipeline may modify nullable fields -
  * required fields (externalId, url, sourceProfileName) are always set.
  *
  * Keys in fromArray() use snake_case (database/scraper convention).
@@ -112,39 +112,39 @@ final class ListingDTO
     public function toArray(): array
     {
         return [
-            'external_id'         => $this->externalId,
-            'url'                 => $this->url,
+            'external_id' => $this->externalId,
+            'url' => $this->url,
             'source_profile_name' => $this->sourceProfileName,
 
-            'listing_type'  => $this->listingType,
+            'listing_type' => $this->listingType,
             'property_type' => $this->propertyType,
 
-            'price'         => $this->price,
-            'currency'      => $this->currency,
+            'price' => $this->price,
+            'currency' => $this->currency,
             'price_per_sqm' => $this->pricePerSqm,
 
             'area' => $this->area,
 
-            'rooms'         => $this->rooms,
-            'bathrooms'     => $this->bathrooms,
-            'floor'         => $this->floor,
-            'total_floors'  => $this->totalFloors,
+            'rooms' => $this->rooms,
+            'bathrooms' => $this->bathrooms,
+            'floor' => $this->floor,
+            'total_floors' => $this->totalFloors,
             'ceiling_height' => $this->ceilingHeight,
             'building_type' => $this->buildingType,
-            'condition'     => $this->condition,
+            'condition' => $this->condition,
             'is_new_building' => $this->isNewBuilding,
 
             'district' => $this->district,
-            'address'  => $this->address,
+            'address' => $this->address,
 
-            'phone'       => $this->phone,
+            'phone' => $this->phone,
             'agency_name' => $this->agencyName,
 
             'images' => $this->images,
             'extras' => $this->extras,
 
             'listing_date' => $this->listingDate?->toDateTimeString(),
-            'scraped_at'   => $this->scrapedAt->toDateTimeString(),
+            'scraped_at' => $this->scrapedAt->toDateTimeString(),
         ];
     }
 }

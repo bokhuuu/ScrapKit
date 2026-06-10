@@ -23,7 +23,7 @@ use Throwable;
  */
 class ScrapeCompletedJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
         private readonly int $scraperRunId,

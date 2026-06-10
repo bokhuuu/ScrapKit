@@ -21,6 +21,7 @@ class ThrottledRetryMiddleware
         } catch (\Throwable $e) {
             if ($job->attempts() >= $job->tries) {
                 $job->fail($e);
+
                 return;
             }
 

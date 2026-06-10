@@ -16,11 +16,12 @@ use App\Scrapers\Pipeline\Stages\CleanPriceStage;
 use App\Scrapers\Pipeline\Stages\DeduplicateStage;
 use App\Scrapers\Pipeline\Stages\NormalizeStringFieldsStage;
 use App\Scrapers\Pipeline\Stages\ValidateRequiredFieldsStage;
+use Laravel\Dusk\Browser;
 
 /**
  * Default implementations for methods common across all scraper profiles.
  * Concrete profiles extend this and override only what differs.
- * 
+ *
  * Abstract methods must be implemented by every profile - they contain
  * site-specific data that cannot have a sensible default.
  */
@@ -56,8 +57,9 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     /**
      * Most sites are public - no auth required by default.
      * Override in profiles that require login (e.g. to reveal phone numbers).
+     * Browser is injected at runtime by CrawlDetailPageJob after scraper boots.
      */
-    public function getAuthStrategy(): ?AuthStrategyInterface
+    public function getAuthStrategy(?Browser $browser = null): ?AuthStrategyInterface
     {
         return null;
     }
@@ -90,7 +92,7 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
         return [
             'headless' => true,
             'window_size' => config('scraper.browser_window_size'),
-            'user_agent'  => config('scraper.user_agent'),
+            'user_agent' => config('scraper.user_agent'),
         ];
     }
 
@@ -111,14 +113,14 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     public function getPipelineStages(): array
     {
         return [
-            new NormalizeStringFieldsStage(),
+            new NormalizeStringFieldsStage,
             new ValidateRequiredFieldsStage($this->getRequiredFields()),
-            new CleanPriceStage(),
-            new CleanPhoneStage(),
-            new CleanAreaStage(),
-            new CalculatePricePerSqmStage(),
-            new CleanBuildingTypeStage(),
-            new DeduplicateStage(new ListingRepository()),
+            new CleanPriceStage,
+            new CleanPhoneStage,
+            new CleanAreaStage,
+            new CalculatePricePerSqmStage,
+            new CleanBuildingTypeStage,
+            new DeduplicateStage(new ListingRepository),
 
         ];
     }
@@ -142,7 +144,7 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
         return [
             'concurrency' => (int) config('scraper.default_concurrency'),
             'retry_times' => (int) config('scraper.default_retry_times'),
-            'timeout'     => (int) config('scraper.default_timeout_s'),
+            'timeout' => (int) config('scraper.default_timeout_s'),
         ];
     }
 

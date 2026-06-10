@@ -30,7 +30,7 @@ class TriggerScrapeExport
         Log::info('TriggerScrapeExport: exports generated.', [
             'source' => $event->source,
             'run_id' => $event->scraperRunId,
-            'files'  => $paths,
+            'files' => $paths,
         ]);
     }
 }

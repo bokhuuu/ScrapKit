@@ -26,9 +26,10 @@ use Throwable;
  */
 class CrawlDetailPageJob implements ShouldQueue
 {
-    use Batchable, Queueable, InteractsWithQueue, SerializesModels;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries;
+
     public int $timeout;
 
     public function __construct(
@@ -44,13 +45,18 @@ class CrawlDetailPageJob implements ShouldQueue
     public function middleware(): array
     {
         return [
-            new ThrottledRetryMiddleware(),
+            new ThrottledRetryMiddleware,
         ];
     }
 
     public function handle(ListingRepository $repository): void
     {
         $scraper = new ($this->profile->getScraperClass())($this->profile);
+
+        $authStrategy = $this->profile->getAuthStrategy($scraper->getBrowser());
+        if ($authStrategy !== null) {
+            $scraper->setAuthStrategy($authStrategy);
+        }
 
         try {
             $raw = $scraper->crawlDetailPage($this->url);

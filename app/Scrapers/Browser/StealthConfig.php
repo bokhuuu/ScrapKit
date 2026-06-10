@@ -45,7 +45,7 @@ class StealthConfig
             // Replace HeadlessChrome user agent with a real browser string.
             // Sites read this header on every request - HeadlessChrome is an
             // immediate bot signal.
-            '--user-agent=' . self::userAgent(),
+            '--user-agent='.self::userAgent(),
 
             // Disable the automation info bar Chrome shows at the top:
             // "Chrome is being controlled by automated software"
@@ -81,9 +81,9 @@ class StealthConfig
             "Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]})",
 
             // Fake supported languages - headless Chrome often has empty languages.
-            "Object.defineProperty(navigator, 'languages', {get: () => " . json_encode(
+            "Object.defineProperty(navigator, 'languages', {get: () => ".json_encode(
                 explode(',', (string) config('scraper.browser_languages', 'en-US,en'))
-            ) . "})",
+            ).'})',
         ];
     }
 

@@ -53,7 +53,7 @@ class JsonExporter implements ExporterInterface
      */
     private function buildPath(string $source): string
     {
-        $dir  = storage_path('app/' . config('scraper.export_path'));
+        $dir = storage_path('app/'.config('scraper.export_path'));
         $date = now()->format('d_m_Y');
 
         return "{$dir}/{$source}_{$date}.{$this->extension()}";

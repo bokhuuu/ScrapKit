@@ -23,9 +23,10 @@ use Throwable;
  */
 class CrawlIndexPageJob implements ShouldQueue
 {
-    use Batchable, Queueable, InteractsWithQueue, SerializesModels;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries;
+
     public int $timeout;
 
     public function __construct(
@@ -41,7 +42,7 @@ class CrawlIndexPageJob implements ShouldQueue
     public function middleware(): array
     {
         return [
-            new ThrottledRetryMiddleware(),
+            new ThrottledRetryMiddleware,
         ];
     }
 

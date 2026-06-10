@@ -26,7 +26,7 @@ class ScraperRunCommand extends Command
     public function handle(ScraperManager $manager): int
     {
         $source = $this->argument('source');
-        $pages  = $this->option('pages') ? (int) $this->option('pages') : null;
+        $pages = $this->option('pages') ? (int) $this->option('pages') : null;
 
         $profile = $this->resolveProfile($source);
 
@@ -37,7 +37,7 @@ class ScraperRunCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("Starting scrape run for [{$source}]" . ($pages ? " - {$pages} pages" : '') . '...');
+        $this->info("Starting scrape run for [{$source}]".($pages ? " - {$pages} pages" : '').'...');
 
         $manager->run($profile, $pages);
 

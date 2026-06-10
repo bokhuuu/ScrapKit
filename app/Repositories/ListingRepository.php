@@ -27,7 +27,7 @@ class ListingRepository
      * Matches on external_id + source compound key.
      * Used by the pipeline as the primary save method to handle re-scrapes cleanly.
      *
-     * @param array $data Expects output of ListingDTO::toArray()
+     * @param  array  $data  Expects output of ListingDTO::toArray()
      */
     public function updateOrCreate(array $data): Listing
     {
@@ -55,7 +55,6 @@ class ListingRepository
 
     /**
      * Retrieve all active listings for a given source.
-     *
      */
     public function findBySource(string $source): Collection
     {

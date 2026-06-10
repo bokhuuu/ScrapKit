@@ -25,16 +25,16 @@ class TelegramNotifier implements NotifierInterface
     {
         $this->telegram->sendMessage([
             'chat_id' => config('services.telegram.chat_id'),
-            'text'    => $this->buildMessage($payload),
+            'text' => $this->buildMessage($payload),
         ]);
     }
 
     private function buildMessage(array $payload): string
     {
-        $source  = $payload['source'] ?? 'unknown';
-        $status  = $payload['status'] ?? 'unknown';
-        $count   = $payload['listing_count'] ?? null;
-        $error   = $payload['error'] ?? null;
+        $source = $payload['source'] ?? 'unknown';
+        $status = $payload['status'] ?? 'unknown';
+        $count = $payload['listing_count'] ?? null;
+        $error = $payload['error'] ?? null;
 
         $message = "ScrapKit [{$source}] — {$status}";
 

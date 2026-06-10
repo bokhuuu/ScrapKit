@@ -50,15 +50,15 @@ class Listing extends Model
     ];
 
     protected $casts = [
-        'price'           => 'float',
-        'price_per_sqm'   => 'float',
-        'area'            => 'float',
-        'ceiling_height'  => 'float',
+        'price' => 'float',
+        'price_per_sqm' => 'float',
+        'area' => 'float',
+        'ceiling_height' => 'float',
         'is_new_building' => 'boolean',
-        'images'          => 'array',
-        'extras'          => 'array',
-        'listing_date'    => 'datetime',
-        'scraped_at'      => 'datetime',
+        'images' => 'array',
+        'extras' => 'array',
+        'listing_date' => 'datetime',
+        'scraped_at' => 'datetime',
     ];
 
     /**

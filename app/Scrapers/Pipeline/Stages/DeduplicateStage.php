@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Scrapers\Pipeline\Stages;
 
-use App\Repositories\ListingRepository;
 use App\DTOs\ListingDTO;
+use App\Repositories\ListingRepository;
 use App\Scrapers\Exceptions\DuplicateListingException;
 use App\Scrapers\Pipeline\PipelineStageInterface;
 

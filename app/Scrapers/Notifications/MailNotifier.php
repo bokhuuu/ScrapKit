@@ -23,7 +23,7 @@ class MailNotifier implements NotifierInterface
             function ($message) use ($to): void {
                 $message
                     ->to($to)
-                    ->subject('ScrapKit Alert — ' . ($payload['source'] ?? 'unknown'));
+                    ->subject('ScrapKit Alert — '.($payload['source'] ?? 'unknown'));
             }
         );
     }
@@ -32,11 +32,11 @@ class MailNotifier implements NotifierInterface
     {
         $source = $payload['source'] ?? 'unknown';
         $status = $payload['status'] ?? 'unknown';
-        $count  = $payload['listing_count'] ?? null;
-        $error  = $payload['error'] ?? null;
-        $date   = now()->format('Y-m-d H:i');
+        $count = $payload['listing_count'] ?? null;
+        $error = $payload['error'] ?? null;
+        $date = now()->format('Y-m-d H:i');
 
-        $message  = "ScrapKit Notification\n";
+        $message = "ScrapKit Notification\n";
         $message .= "=====================\n\n";
         $message .= "Source:  {$source}\n";
         $message .= "Status:  {$status}\n";

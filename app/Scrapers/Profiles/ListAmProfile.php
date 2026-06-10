@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Scrapers\Profiles;
 
+use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
+use App\Scrapers\Auth\CookieAuthStrategy;
+use App\Scrapers\Auth\FormLoginStrategy;
 use App\Scrapers\Base\AbstractScraperProfile;
 use App\Scrapers\Notifications\MailNotifier;
 use App\Scrapers\Notifications\TelegramNotifier;
 use App\Scrapers\Pipeline\Stages\EnrichDistrictStage;
 use App\Scrapers\Pipeline\Stages\FilterCurrencyStage;
 use App\Scrapers\Sites\ListAmScraper;
+use Laravel\Dusk\Browser;
 
 /**
  * Scraper profile for list.am : Armenia's largest classifieds platform.
@@ -45,8 +49,8 @@ class ListAmProfile extends AbstractScraperProfile
         return [
             'listing_container' => 'div.gl',
             'card_link' => 'a[href*="/en/item/"]',
-            'price'             => 'div.p',
-            'location'          => 'div.at',
+            'price' => 'div.p',
+            'location' => 'div.at',
         ];
     }
 
@@ -61,24 +65,24 @@ class ListAmProfile extends AbstractScraperProfile
     {
         return [
             // CSS selectors
-            'price'        => 'span[itemprop="price"]',
-            'currency'     => 'meta[itemprop="priceCurrency"]',
-            'location'     => '#poi-map-anchor',
-            'call_button'  => 'a.call',
+            'price' => 'span[itemprop="price"]',
+            'currency' => 'meta[itemprop="priceCurrency"]',
+            'location' => '#poi-map-anchor',
+            'call_button' => 'a.call',
             'phone_number' => 'span.phone',
             'listing_date' => 'span[itemprop="datePosted"]',
-            'images'       => 'img[src*="s.list.am/f/"]',
+            'images' => 'img[src*="s.list.am/f/"]',
 
             // Label strings - used by extractSpecByLabel()
-            'area'             => 'Floor Area',
-            'floor'            => 'Floor',
-            'floor_total'      => 'Floors in the Building',
-            'rooms'            => 'Number of Rooms',
-            'bathrooms'        => 'Number of Bathrooms',
-            'ceiling_height'   => 'Ceiling Height',
-            'building_type'    => 'Construction Type',
+            'area' => 'Floor Area',
+            'floor' => 'Floor',
+            'floor_total' => 'Floors in the Building',
+            'rooms' => 'Number of Rooms',
+            'bathrooms' => 'Number of Bathrooms',
+            'ceiling_height' => 'Ceiling Height',
+            'building_type' => 'Construction Type',
             'new_construction' => 'New Construction',
-            'renovation'       => 'Renovation',
+            'renovation' => 'Renovation',
         ];
     }
 
@@ -166,7 +170,7 @@ class ListAmProfile extends AbstractScraperProfile
     {
         return [
             'the center' => 'Kentron',
-            'center'     => 'Kentron',
+            'center' => 'Kentron',
         ];
     }
 
@@ -189,5 +193,36 @@ class ListAmProfile extends AbstractScraperProfile
     public function getExports(): array
     {
         return ['excel', 'json', 'colliers_report'];
+    }
+
+    /**
+     * Authenticates via cookie restore first, falls back to form login.
+     * Credentials read from config/scraper.php → profile_config.listam.auth.
+     * Returns null if no browser provided - safe to call from non-browser contexts.
+     */
+    public function getAuthStrategy(?Browser $browser = null): ?AuthStrategyInterface
+    {
+        if ($browser === null) {
+            return null;
+        }
+
+        $formLogin = new FormLoginStrategy(
+            browser: $browser,
+            loginUrl: 'https://www.list.am/en/user/login',
+            emailSelector: 'input[name="username"]',
+            passwordSelector: 'input[name="password"]',
+            submitSelector: 'button[type="submit"]',
+            successSelector: 'a.logout',
+            email: config('scraper.profile_config.listam.auth.email'),
+            password: config('scraper.profile_config.listam.auth.password'),
+        );
+
+        return new CookieAuthStrategy(
+            browser: $browser,
+            profileName: $this->getName(),
+            baseUrl: $this->getBaseUrl(),
+            authCheckSelector: 'a.logout',
+            loginStrategy: $formLogin,
+        );
     }
 }

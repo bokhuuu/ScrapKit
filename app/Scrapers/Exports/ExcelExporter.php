@@ -30,7 +30,8 @@ class ExcelExporter implements ExporterInterface
     {
         $path = $this->buildPath($profile->getName());
 
-        Excel::store(new class($data) implements FromArray, WithHeadings {
+        Excel::store(new class($data) implements FromArray, WithHeadings
+        {
             public function __construct(private readonly array $data) {}
 
             /**
@@ -40,7 +41,7 @@ class ExcelExporter implements ExporterInterface
              */
             public function array(): array
             {
-                return array_map(fn($row) => array_values($row), $this->data);
+                return array_map(fn ($row) => array_values($row), $this->data);
             }
 
             /**
@@ -53,7 +54,7 @@ class ExcelExporter implements ExporterInterface
             }
         }, $path, 'local');
 
-        return storage_path('app/' . $path);
+        return storage_path('app/'.$path);
     }
 
     /**
@@ -71,7 +72,7 @@ class ExcelExporter implements ExporterInterface
      */
     private function buildPath(string $source): string
     {
-        $dir  = config('scraper.export_path');
+        $dir = config('scraper.export_path');
         $date = now()->format('Y_m_d');
 
         return "{$dir}/{$source}_{$date}.{$this->extension()}";

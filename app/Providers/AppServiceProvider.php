@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
 use App\Events\ScrapeCompleted;
 use App\Events\ScrapeFailed;
 use App\Listeners\SendScrapeCompletedNotification;
 use App\Listeners\SendScrapeFailedNotification;
 use App\Listeners\TriggerScrapeExport;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Application service provider for bootstrapping services.

@@ -50,7 +50,7 @@ class ScraperManager
         Log::info('Scrape run started', [
             'run_id' => $run->id,
             'source' => $profile->getName(),
-            'pages'  => $pages,
+            'pages' => $pages,
         ]);
 
         $jobs = [];
@@ -82,7 +82,7 @@ class ScraperManager
                 Log::error('Scrape batch failed', [
                     'run_id' => $run->id,
                     'source' => $profile->getName(),
-                    'error'  => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             })
             ->name($this->buildBatchName($profile->getName(), $run->id))

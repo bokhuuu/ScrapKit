@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\ScraperState;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Tracks a single scraper execution - its state, progress and outcome.
@@ -41,7 +41,6 @@ class ScraperRun extends Model
 
     /**
      * Scope to filter runs by their current state.
-     *
      */
     public function scopeForState(Builder $query, ScraperState $state): Builder
     {
