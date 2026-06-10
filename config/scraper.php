@@ -223,6 +223,36 @@ return [
     |   {id}     - the scraper run ID
     |
     */
-
     'batch_name_pattern' => env('SCRAPER_BATCH_NAME_PATTERN', '{source}-run-{id}'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Export Path
+    |--------------------------------------------------------------------------
+    |
+    | Directory where exported files are stored, relative to storage/app/.
+    | Override via SCRAPER_EXPORT_PATH in .env.
+    |
+    */
+    'export_path' => env('SCRAPER_EXPORT_PATH', 'exports'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Exporters Map
+    |--------------------------------------------------------------------------
+    |
+    | Maps format keys to their exporter class implementations.
+    | Profiles declare which formats to run via getExports().
+    | Add a new entry here to register a new export format globally.
+    | No other files need to change.
+    |
+    | 'format_key' => ExporterClass::class
+    |
+    */
+    'exporters' => [
+        'excel' => \App\Scrapers\Exports\ExcelExporter::class,
+        'csv'   => \App\Scrapers\Exports\CsvExporter::class,
+        'json'  => \App\Scrapers\Exports\JsonExporter::class,
+        'colliers_report' => \App\Scrapers\Profiles\Reports\ColliersExcelReport::class
+    ],
 ];

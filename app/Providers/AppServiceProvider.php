@@ -10,6 +10,7 @@ use App\Events\ScrapeCompleted;
 use App\Events\ScrapeFailed;
 use App\Listeners\SendScrapeCompletedNotification;
 use App\Listeners\SendScrapeFailedNotification;
+use App\Listeners\TriggerScrapeExport;
 
 /**
  * Application service provider for bootstrapping services.
@@ -28,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(ScrapeCompleted::class, SendScrapeCompletedNotification::class);
         Event::listen(ScrapeFailed::class, SendScrapeFailedNotification::class);
+        Event::listen(ScrapeCompleted::class, TriggerScrapeExport::class);
     }
 }

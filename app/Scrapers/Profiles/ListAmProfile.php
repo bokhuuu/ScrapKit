@@ -181,4 +181,13 @@ class ListAmProfile extends AbstractScraperProfile
             MailNotifier::class,
         ];
     }
+
+    /**
+     * Generic Excel and JSON for reuse across profiles.
+     * Colliers-specific four-sheet report as the client deliverable.
+     */
+    public function getExports(): array
+    {
+        return ['excel', 'json', 'colliers_report'];
+    }
 }

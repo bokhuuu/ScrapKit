@@ -18,7 +18,7 @@ class SendScrapeCompletedNotification
     public function handle(ScrapeCompleted $event): void
     {
         $profileClass = config('scraper.profiles.' . $event->source);
-        $profile      = new $profileClass();
+        $profile      = app($profileClass);
 
         $payload = [
             'source'        => $event->source,
@@ -27,7 +27,7 @@ class SendScrapeCompletedNotification
         ];
 
         foreach ($profile->getNotifiers() as $notifierClass) {
-            $notifier = new $notifierClass();
+            $notifier = app($notifierClass);
             $notifier->notify($payload);
         }
     }
