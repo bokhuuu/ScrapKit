@@ -188,9 +188,8 @@ Configure in `app/Console/Kernel.php`. No cron setup needed beyond Laravel's sta
 
 ## Proxy Support
 
-> Planned - Phase 10
-
 Rotating proxy support via `ProxyResolver` service - configurable per profile.
+Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 
 ---
 
@@ -218,7 +217,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 ### ✅ Foundation
 
 - Laravel 12 + PHP 8.4 installed and configured
-- MySQL database, queue driver set to database
+- MySQL database, queue driver set to redis
 - Laravel Dusk installed
 - Laravel Pint configured with strict_types enforcement
 - Folder structure established, Git repository initialized
@@ -255,7 +254,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 - `StealthConfig` - ChromeDriver fingerprint hardening
 - `ListAmScraper` - verified selectors, label-based spec extraction, image URL collection
 - `config/scraper.php` - all settings configurable via `.env`
-- ⬜ `BrowserPool` - deferred to Phase 10
+- ⬜ `BrowserPool` - written, needs in-process redesign (Redis session reconnection unreliable)
 
 ### ✅ Authentication
 
@@ -306,7 +305,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 - ✅ Rate limiting per domain (RateLimitedMiddleware active)
 - ✅ Cache scraped pages + price statistics
 - ✅ Laravel Horizon queue monitoring
-- ✅ `BrowserPool` - parallel browser instances
+- ⬜ `BrowserPool` - written, needs in-process redesign before wiring
 - ✅ `ProxyResolver` - rotating proxy support
 
 ### ⬜ API Layer

@@ -28,15 +28,20 @@ class ScrapeCompletedJob implements ShouldQueue
     public function __construct(
         private readonly int $scraperRunId,
         private readonly string $source,
+        private readonly int $scrapedPages,
     ) {
         $this->onQueue('completed');
     }
 
     public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository): void
     {
-        $runRepository->markAsCompleted($this->scraperRunId);
-
         $listingCount = $listingRepository->countBySource($this->source);
+
+        $runRepository->markAsCompleted(
+            id: $this->scraperRunId,
+            savedListings: $listingCount,
+            scrapedPages: $this->scrapedPages,
+        );
 
         event(new ScrapeCompleted(
             scraperRunId: $this->scraperRunId,
@@ -47,6 +52,8 @@ class ScrapeCompletedJob implements ShouldQueue
         Log::info('Scrape run completed', [
             'run_id' => $this->scraperRunId,
             'source' => $this->source,
+            'listings' => $listingCount,
+            'pages' => $this->scrapedPages,
         ]);
     }
 

@@ -40,11 +40,13 @@ class ScraperRunRepository
      *
      * Convenience wrapper called by ScrapeCompletedJob.
      */
-    public function markAsCompleted(int $id): void
+    public function markAsCompleted(int $id, int $savedListings = 0, int $scrapedPages = 0): void
     {
         ScraperRun::where('id', $id)->update([
             'state' => ScraperState::Completed,
             'finished_at' => now(),
+            'saved_listings' => $savedListings,
+            'scraped_pages' => $scrapedPages,
         ]);
     }
 
