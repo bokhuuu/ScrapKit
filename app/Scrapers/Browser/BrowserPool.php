@@ -7,6 +7,7 @@ namespace App\Scrapers\Browser;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Laravel\Dusk\Browser;
 
@@ -52,9 +53,23 @@ class BrowserPool
      *
      * Blocks until a session ID is available (up to ACQUIRE_TIMEOUT_S seconds).
      * Reconnects to the existing Chrome session - no new browser is launched.
+     *
+     * Auto-initializes the pool if empty (e.g. first job after worker start).
+     * Uses a Redis lock to prevent multiple workers initializing simultaneously.
      */
     public function acquire(): Browser
     {
+        if (Redis::llen(self::POOL_KEY) === 0) {
+            $lock = Cache::lock('scraper:pool:init', 10);
+            if ($lock->get()) {
+                try {
+                    $this->initialize();
+                } finally {
+                    $lock->release();
+                }
+            }
+        }
+
         $result = Redis::blpop(self::POOL_KEY, self::ACQUIRE_TIMEOUT_S);
 
         if ($result === null) {
@@ -63,9 +78,17 @@ class BrowserPool
 
         $sessionId = $result[1];
 
+        $options = new ChromeOptions;
+        $capabilities = DesiredCapabilities::chrome();
+        $capabilities->setCapability(ChromeOptions::CAPABILITY, $options);
+
         $driver = RemoteWebDriver::createBySessionID(
             $sessionId,
             config('scraper.chromedriver_url'),
+            null,
+            null,
+            true,
+            DesiredCapabilities::chrome(),
         );
 
         return new Browser($driver);

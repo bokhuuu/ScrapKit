@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Scrapers\Sites;
 
 use App\Scrapers\Browser\BaseScraper;
+use App\Scrapers\Browser\ProxyResolver;
 use App\Scrapers\Browser\StealthConfig;
 use App\Scrapers\Contracts\ScraperProfileInterface;
+use Laravel\Dusk\Browser;
 use Throwable;
 
 /**
@@ -21,9 +23,12 @@ use Throwable;
  */
 class ListAmScraper extends BaseScraper
 {
-    public function __construct(ScraperProfileInterface $profile)
-    {
-        parent::__construct($profile);
+    public function __construct(
+        ScraperProfileInterface $profile,
+        ProxyResolver $proxyResolver,
+        ?Browser $browser = null,
+    ) {
+        parent::__construct($profile, $proxyResolver, $browser);
     }
 
     protected function chromeArguments(): array
@@ -59,7 +64,7 @@ class ListAmScraper extends BaseScraper
 
             $urls[] = str_starts_with($href, 'http')
                 ? $href
-                : $this->profile->getBaseUrl().$href;
+                : $this->profile->getBaseUrl() . $href;
         }
 
         return $urls;
@@ -260,7 +265,7 @@ class ListAmScraper extends BaseScraper
                 }
 
                 $urls[] = str_starts_with($src, '//')
-                    ? 'https:'.$src
+                    ? 'https:' . $src
                     : $src;
             }
 

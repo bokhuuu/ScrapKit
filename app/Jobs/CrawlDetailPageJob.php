@@ -8,7 +8,6 @@ use App\DTOs\ListingDTO;
 use App\Jobs\Middleware\RateLimitedMiddleware;
 use App\Jobs\Middleware\ThrottledRetryMiddleware;
 use App\Repositories\ListingRepository;
-use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use App\Scrapers\Pipeline\ScraperPipeline;
 use Illuminate\Bus\Batchable;
@@ -56,21 +55,18 @@ class CrawlDetailPageJob implements ShouldQueue
         ];
     }
 
-    public function handle(ListingRepository $repository, BrowserPool $pool): void
+    public function handle(ListingRepository $repository): void
     {
-        $browser = $pool->acquire();
+        $scraper = app($this->profile->getScraperClass(), [
+            'profile' => $this->profile,
+        ]);
+
+        $authStrategy = $this->profile->getAuthStrategy($scraper->getBrowser());
+        if ($authStrategy !== null) {
+            $scraper->setAuthStrategy($authStrategy);
+        }
 
         try {
-            $scraper = app($this->profile->getScraperClass(), [
-                'profile' => $this->profile,
-                'browser' => $browser,
-            ]);
-
-            $authStrategy = $this->profile->getAuthStrategy($browser);
-            if ($authStrategy !== null) {
-                $scraper->setAuthStrategy($authStrategy);
-            }
-
             $raw = $scraper->fetchDetailPage($this->url);
 
             $dto = ListingDTO::fromArray($raw);
@@ -87,7 +83,7 @@ class CrawlDetailPageJob implements ShouldQueue
 
             $repository->updateOrCreate($processed->toArray());
         } finally {
-            $pool->release($browser);
+            $scraper->closeBrowser();
         }
     }
 

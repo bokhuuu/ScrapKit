@@ -72,7 +72,7 @@ Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 
 ## Performance
 
-> Benchmarks coming after Phase 10 (BrowserPool & Redis) is complete
+> Redis active. BrowserPool in-process redesign pending. Benchmarks coming after BrowserPool is complete.
 
 | Mode                            | Expected throughput  |
 | ------------------------------- | -------------------- |
@@ -202,7 +202,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 | Browser automation | Laravel Dusk + ChromeDriver  |
 | Queue              | Redis                        |
 | Cache              | Redis                        |
-| Queue monitoring   | Laravel Horizon (Phase 10)   |
+| Queue monitoring   | Laravel Horizon              |
 | Export             | Maatwebsite Excel            |
 | Notifications      | Telegram Bot SDK + SMTP Mail |
 | Testing            | Pest                         |
@@ -367,8 +367,8 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 
 - Phone numbers on list.am require authenticated login - Dusk handles this but adds scrape time per listing
 - JavaScript-rendered pages require ChromeDriver - cannot use lightweight HTTP-only scraping for all sites
-- BrowserPool deferred to Phase 10 - currently single browser instance per job
-- No proxy rotation yet - suitable for polite scraping volumes, not aggressive bulk extraction
+- BrowserPool written but session reconnection via ChromeDriver is unreliable - needs in-process redesign
+- ProxyResolver implemented - activate by setting SCRAPER_PROXY_ENABLED=true with proxy list in .env
 - Image galleries on list.am load lazily - only the first image captured per listing
 - list.am does not expose individual agency names on listing pages - agency vs owner split is tracked, specific agency identity is not
 
