@@ -36,9 +36,11 @@ abstract class BaseScraper
      * Inject the site profile so child scrapers can access
      * URLs, selectors and delays without hardcoding them.
      */
-    public function __construct(protected readonly ScraperProfileInterface $profile)
-    {
-        $this->browser = $this->createBrowser();
+    public function __construct(
+        protected readonly ScraperProfileInterface $profile,
+        ?Browser $browser = null,
+    ) {
+        $this->browser = $browser ?? $this->createBrowser();
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Events\ScrapeFailed;
 use App\Jobs\CrawlIndexPageJob;
 use App\Jobs\ScrapeCompletedJob;
 use App\Repositories\ScraperRunRepository;
+use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
@@ -29,6 +30,7 @@ class ScraperManager
 {
     public function __construct(
         private readonly ScraperRunRepository $runRepository,
+        private readonly BrowserPool $pool,
     ) {}
 
     /**
@@ -53,6 +55,8 @@ class ScraperManager
             'pages' => $pages,
         ]);
 
+        $this->pool->initialize();
+
         $jobs = [];
 
         for ($page = 1; $page <= $pages; $page++) {
@@ -65,12 +69,14 @@ class ScraperManager
 
         Bus::batch($jobs)
             ->then(function (Batch $batch) use ($run, $profile): void {
+                $this->pool->teardown();
                 ScrapeCompletedJob::dispatch(
                     scraperRunId: $run->id,
                     source: $profile->getName(),
                 );
             })
             ->catch(function (Batch $batch, Throwable $e) use ($run, $profile): void {
+                $this->pool->teardown();
                 $this->runRepository->markAsFailed($run->id, $e->getMessage());
 
                 event(new ScrapeFailed(

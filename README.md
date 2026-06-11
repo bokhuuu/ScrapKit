@@ -304,9 +304,9 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 
 - ✅ Redis setup
 - ✅ Rate limiting per domain (RateLimitedMiddleware active)
-- ⬜ Cache scraped pages + price statistics
+- ✅ Cache scraped pages + price statistics
 - ✅ Laravel Horizon queue monitoring
-- ⬜ `BrowserPool` - parallel browser instances
+- ✅ `BrowserPool` - parallel browser instances
 - ⬜ `ProxyResolver` - rotating proxy support
 
 ### ⬜ API Layer

@@ -9,6 +9,7 @@ use App\Events\ScrapeFailed;
 use App\Listeners\SendScrapeCompletedNotification;
 use App\Listeners\SendScrapeFailedNotification;
 use App\Listeners\TriggerScrapeExport;
+use App\Scrapers\Browser\BrowserPool;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,7 +21,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->singleton(BrowserPool::class, function () {
+            return new BrowserPool(
+                size: config('scraper.browser_pool_size'),
+            );
+        });
+    }
 
     /**
      * Bootstrap any application services.

@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Jobs\Middleware\RateLimitedMiddleware;
 use App\Jobs\Middleware\ThrottledRetryMiddleware;
+use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,11 +53,19 @@ class CrawlIndexPageJob implements ShouldQueue
         ];
     }
 
-    public function handle(): void
+    public function handle(BrowserPool $pool): void
     {
-        $scraper = app($this->profile->getScraperClass(), ["profile" => $this->profile]);
+        $browser = $pool->acquire();
 
         try {
+            $scraper = app(
+                $this->profile->getScraperClass(),
+                [
+                    "profile" => $this->profile,
+                    'browser' => $browser,
+                ]
+            );
+
             $urls = $scraper->crawlIndexPage($this->page);
 
             foreach ($urls as $url) {
@@ -67,7 +76,7 @@ class CrawlIndexPageJob implements ShouldQueue
                 );
             }
         } finally {
-            $scraper->closeBrowser();
+            $pool->release($browser);
         }
     }
 
