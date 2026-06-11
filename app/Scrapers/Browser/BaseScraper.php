@@ -38,6 +38,7 @@ abstract class BaseScraper
      */
     public function __construct(
         protected readonly ScraperProfileInterface $profile,
+        protected readonly ProxyResolver $proxyResolver,
         ?Browser $browser = null,
     ) {
         $this->browser = $browser ?? $this->createBrowser();
@@ -87,13 +88,21 @@ abstract class BaseScraper
      */
     protected function chromeArguments(): array
     {
-        return [
+        $args = [
             '--headless',
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
             '--window-size=' . config('scraper.browser_window_size'),
         ];
+
+        $proxy = $this->proxyResolver->resolve();
+
+        if ($proxy !== null) {
+            $args[] = '--proxy-server=' . $this->proxyResolver->withCredentials($proxy);
+        }
+
+        return $args;
     }
 
     /**
