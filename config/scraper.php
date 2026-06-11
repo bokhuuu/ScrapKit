@@ -1,11 +1,11 @@
 <?php
 
 declare(strict_types=1);
+
 use App\Scrapers\Exports\CsvExporter;
 use App\Scrapers\Exports\ExcelExporter;
 use App\Scrapers\Exports\JsonExporter;
 use App\Scrapers\Profiles\ListAmProfile;
-use App\Scrapers\Profiles\Reports\ColliersExcelReport;
 
 return [
 
@@ -258,6 +258,6 @@ return [
         'excel' => ExcelExporter::class,
         'csv' => CsvExporter::class,
         'json' => JsonExporter::class,
-        'colliers_report' => ColliersExcelReport::class,
+        'real_estate_report' => \App\Scrapers\Profiles\Reports\RealEstateMarketReport::class,
     ],
 ];

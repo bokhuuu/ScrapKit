@@ -25,13 +25,13 @@ use Maatwebsite\Excel\Facades\Excel;
  *   Sheet 7 - Agency Intelligence: market participant map, owner vs agency split
  *   Sheet 8 - Floor & Size       : granular pricing factors for valuation
  *
- * Registered in ListAmProfile::getExports() as 'colliers_report'.
+ * Registered in ListAmProfile::getExports() as 'real_estate_report'.
  * ExportManager resolves it via config/scraper.php exporters map.
  */
-class ColliersExcelReport implements ExporterInterface
+class RealEstateMarketReport implements ExporterInterface
 {
     /**
-     * Generate the eight-sheet Colliers report.
+     * Generate the eight-sheet market research report.
      */
     public function export(array $data, ScraperProfileInterface $profile): string
     {
@@ -56,7 +56,7 @@ class ColliersExcelReport implements ExporterInterface
             }
         }, $path, 'local');
 
-        return storage_path('app/'.$path);
+        return storage_path('app/' . $path);
     }
 
     public function extension(): string
@@ -73,13 +73,13 @@ class ColliersExcelReport implements ExporterInterface
         $dir = config('scraper.export_path');
         $date = now()->format('d_m_Y');
 
-        return "{$dir}/colliers_yerevan_report_{$date}.xlsx";
+        return "{$dir}/real_estate_market_report_{$date}.xlsx";
     }
 }
 
 /**
  * Sheet 1 — Client-facing raw dataset.
- * Contains only fields relevant to Colliers — internal system columns excluded.
+ * Contains only fields relevant to the client
  * Ordered for readability: location → price → property details → contact.
  */
 class AllListingsSheet implements FromArray, WithHeadings, WithTitle
@@ -121,7 +121,7 @@ class AllListingsSheet implements FromArray, WithHeadings, WithTitle
     public function array(): array
     {
         return array_map(function ($row) {
-            return array_map(fn ($col) => $row[$col] ?? null, $this->clientColumns);
+            return array_map(fn($col) => $row[$col] ?? null, $this->clientColumns);
         }, $this->data);
     }
 }
@@ -160,7 +160,7 @@ class MarketOverviewSheet implements FromArray, WithHeadings, WithTitle
 
         $newBuildingCount = count(array_filter(
             array_column($this->data, 'is_new_building'),
-            fn ($v) => $v === true || $v === 1
+            fn($v) => $v === true || $v === 1
         ));
 
         return [
@@ -181,7 +181,7 @@ class MarketOverviewSheet implements FromArray, WithHeadings, WithTitle
             ['', ''],
             ['--- MARKET COMPOSITION ---', ''],
             ['New Construction Listings',  $newBuildingCount],
-            ['New Construction %',         count($this->data) > 0 ? round($newBuildingCount / count($this->data) * 100, 1).'%' : 'N/A'],
+            ['New Construction %',         count($this->data) > 0 ? round($newBuildingCount / count($this->data) * 100, 1) . '%' : 'N/A'],
             ['Agency Listings',            count($agencies)],
             ['Owner Listings',             count($this->data) - count($agencies)],
         ];
@@ -246,7 +246,7 @@ class DistrictAnalysisSheet implements FromArray, WithHeadings, WithTitle
             $areas = array_filter(array_column($listings, 'area'));
             $newCount = count(array_filter(
                 array_column($listings, 'is_new_building'),
-                fn ($v) => $v === true || $v === 1
+                fn($v) => $v === true || $v === 1
             ));
 
             $sortedPrices = array_values($prices);
@@ -263,17 +263,17 @@ class DistrictAnalysisSheet implements FromArray, WithHeadings, WithTitle
             $rows[] = [
                 $district,
                 $count,
-                round($count / $total * 100, 1).'%',
+                round($count / $total * 100, 1) . '%',
                 count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 $median ?? 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
                 count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
                 $newCount,
-                $count > 0 ? round($newCount / $count * 100, 1).'%' : 'N/A',
+                $count > 0 ? round($newCount / $count * 100, 1) . '%' : 'N/A',
             ];
         }
 
-        usort($rows, fn ($a, $b) => $b[1] <=> $a[1]);
+        usort($rows, fn($a, $b) => $b[1] <=> $a[1]);
 
         return $rows;
     }
@@ -282,7 +282,7 @@ class DistrictAnalysisSheet implements FromArray, WithHeadings, WithTitle
 /**
  * Sheet 4 - Product mix and pricing by bedroom count.
  * Answers: what is the dominant product type and what does each command?
- * Critical for Colliers to understand demand segments.
+ * Critical for understanding market demand segments.
  */
 class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
 {
@@ -313,7 +313,7 @@ class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
 
         foreach ($this->data as $row) {
             $rooms = $row['rooms'] ?? null;
-            $label = $rooms !== null ? "{$rooms} Room".($rooms > 1 ? 's' : '') : 'Unknown';
+            $label = $rooms !== null ? "{$rooms} Room" . ($rooms > 1 ? 's' : '') : 'Unknown';
             $grouped[$label][] = $row;
         }
 
@@ -327,18 +327,18 @@ class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
             $areas = array_filter(array_column($listings, 'area'));
             $newCount = count(array_filter(
                 array_column($listings, 'is_new_building'),
-                fn ($v) => $v === true || $v === 1
+                fn($v) => $v === true || $v === 1
             ));
             $count = count($listings);
 
             $rows[] = [
                 $label,
                 $count,
-                round($count / $total * 100, 1).'%',
+                round($count / $total * 100, 1) . '%',
                 count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
                 count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
-                $count > 0 ? round($newCount / $count * 100, 1).'%' : 'N/A',
+                $count > 0 ? round($newCount / $count * 100, 1) . '%' : 'N/A',
             ];
         }
 
@@ -349,7 +349,7 @@ class RoomTypeAnalysisSheet implements FromArray, WithHeadings, WithTitle
 /**
  * Sheet 5 - Building stock composition.
  * Construction type and condition breakdown.
- * Informs Colliers on asset quality distribution across the market.
+ * Informs on asset quality distribution
  */
 class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
 {
@@ -389,7 +389,7 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
                 '',
                 ucfirst($type),
                 $count,
-                round($count / $total * 100, 1).'%',
+                round($count / $total * 100, 1) . '%',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -414,7 +414,7 @@ class BuildingStockSheet implements FromArray, WithHeadings, WithTitle
                 '',
                 $cond,
                 $count,
-                round($count / $total * 100, 1).'%',
+                round($count / $total * 100, 1) . '%',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
         }
@@ -481,7 +481,7 @@ class PriceDistributionSheet implements FromArray, WithHeadings, WithTitle
             $rows[] = [
                 $label,
                 $count,
-                $total > 0 ? round($count / $total * 100, 1).'%' : '0%',
+                $total > 0 ? round($count / $total * 100, 1) . '%' : '0%',
                 count($areas) ? round(array_sum($areas) / count($areas), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];
@@ -494,7 +494,7 @@ class PriceDistributionSheet implements FromArray, WithHeadings, WithTitle
 /**
  * Sheet 7 - Market participant intelligence.
  * Top agencies by listing volume, owner vs agency split.
- * Tells Colliers who controls supply and potential partnership targets.
+ * Shows who controls supply
  */
 class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
 {
@@ -526,7 +526,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
             }
         }
 
-        uasort($agencyData, fn ($a, $b) => count($b) <=> count($a));
+        uasort($agencyData, fn($a, $b) => count($b) <=> count($a));
 
         $rows = [];
         $rows[] = ['MARKET SPLIT', '', '', '', ''];
@@ -536,7 +536,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = [
             'Agency Listings',
             $agencyTotal,
-            round($agencyTotal / $total * 100, 1).'%',
+            round($agencyTotal / $total * 100, 1) . '%',
             '',
             '',
         ];
@@ -544,7 +544,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
         $rows[] = [
             'Owner Listings',
             $ownerCount,
-            round($ownerCount / $total * 100, 1).'%',
+            round($ownerCount / $total * 100, 1) . '%',
             '',
             '',
         ];
@@ -560,7 +560,7 @@ class AgencyIntelligenceSheet implements FromArray, WithHeadings, WithTitle
             $rows[] = [
                 $agency,
                 $count,
-                round($count / $total * 100, 1).'%',
+                round($count / $total * 100, 1) . '%',
                 count($prices) ? round(array_sum($prices) / count($prices), 2) : 'N/A',
                 count($sqmPrices) ? round(array_sum($sqmPrices) / count($sqmPrices), 2) : 'N/A',
             ];

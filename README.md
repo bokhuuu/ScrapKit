@@ -15,7 +15,7 @@ ScrapKit is a production-grade data extraction engine.
 Add two files per new site. Everything else - queues, pipeline, deduplication, exports, notifications - works automatically.
 
 **Currently scraping:** [list.am](https://list.am) - Armenia's largest classifieds platform (110,000+ active listings)
-**Active client delivery:** Yerevan real estate market research for Colliers International
+**Active client delivery:** Yerevan real estate market research for a real estate market entry client
 
 ---
 
@@ -29,10 +29,10 @@ ScrapKit is the data collection layer of a three-template system:
 | **LaraAI**   | Analyzes and understands scraped data with AI        |
 | **LaraKit**  | Admin dashboard - visualize results, control scrapes |
 
-**Real-world example (Colliers use case):**
+**Real-world example (Real estate client use case):**
 ScrapKit → scrapes list.am every night → 10,000 new listings in database
 LaraAI → "Kentron prices rose 8% this month"
-LaraKit → Colliers team opens dashboard → live price map, trend charts, export reports
+LaraKit → Client team opens dashboard → live price map, trend charts, export reports
 
 ---
 
@@ -52,8 +52,8 @@ php artisan scraper:run listam --pages=50
 
 ## Sample Output
 
-A sample Colliers Yerevan market research report is available in `/examples`:
-examples/colliers_yerevan_report_sample.xlsx
+A sample Yerevan real estate market research report is available in `/examples`:
+examples/real_estate_market_report_sample.xlsx
 
 Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 
@@ -137,7 +137,7 @@ Export (profile-driven):
 ExcelExporter → generic .xlsx
 CsvExporter → generic .csv
 JsonExporter → generic .json
-ColliersExcelReport → 8-sheet client deliverable
+RealEstateMarketReport → 8-sheet client deliverable
 
 ---
 
@@ -296,7 +296,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 - `JsonExporter` - generic JSON export, API/pipeline ready
 - `ExportManager` - orchestrates all configured exporters post-scrape
 - `TriggerScrapeExport` listener - bridges ScrapeCompleted event to ExportManager
-- `ColliersExcelReport` - 8-sheet client deliverable (District Analysis, Room Types, Building Stock, Price Distribution, Agency Intelligence, Floor & Size Analysis)
+- `RealEstateMarketReport` - 8-sheet client deliverable (District Analysis, Room Types, Building Stock, Price Distribution, Agency Intelligence, Floor & Size Analysis)
 - Config-driven - formats declared in profile `getExports()`, classes resolved via `config/scraper.php`
 - Sample report added to `/examples`
 

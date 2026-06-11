@@ -176,7 +176,7 @@ class ListAmProfile extends AbstractScraperProfile
 
     /**
      * Notify via Telegram and email on scrape events.
-     * Both channels active for the Colliers deliverable.
+     * Both channels active for real estate market research delivery.
      */
     public function getNotifiers(): array
     {
@@ -188,11 +188,11 @@ class ListAmProfile extends AbstractScraperProfile
 
     /**
      * Generic Excel and JSON for reuse across profiles.
-     * Colliers-specific four-sheet report as the client deliverable.
+     * Real estate market report as the primary client deliverable.
      */
     public function getExports(): array
     {
-        return ['excel', 'json', 'colliers_report'];
+        return ['excel', 'json', 'real_estate_report'];
     }
 
     /**
