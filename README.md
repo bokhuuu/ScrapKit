@@ -300,14 +300,14 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 - Config-driven - formats declared in profile `getExports()`, classes resolved via `config/scraper.php`
 - Sample report added to `/examples`
 
-### ⬜ Caching & Performance
+### 🔄 Caching & Performance
 
 - ✅ Redis setup
 - ✅ Rate limiting per domain (RateLimitedMiddleware active)
 - ⬜ Cache scraped pages + price statistics
-- Laravel Horizon queue monitoring
-- `BrowserPool` - parallel browser instances
-- `ProxyResolver` - rotating proxy support
+- ✅ Laravel Horizon queue monitoring
+- ⬜ `BrowserPool` - parallel browser instances
+- ⬜ `ProxyResolver` - rotating proxy support
 
 ### ⬜ API Layer
 

@@ -28,7 +28,9 @@ class ScrapeCompletedJob implements ShouldQueue
     public function __construct(
         private readonly int $scraperRunId,
         private readonly string $source,
-    ) {}
+    ) {
+        $this->onQueue('completed');
+    }
 
     public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository): void
     {
