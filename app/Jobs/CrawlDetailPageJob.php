@@ -65,7 +65,7 @@ class CrawlDetailPageJob implements ShouldQueue
         }
 
         try {
-            $raw = $scraper->crawlDetailPage($this->url);
+            $raw = $scraper->fetchDetailPage($this->url);
 
             $dto = ListingDTO::fromArray($raw);
 

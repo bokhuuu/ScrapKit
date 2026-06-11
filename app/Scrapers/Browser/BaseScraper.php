@@ -10,6 +10,7 @@ use Closure;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Dusk\Browser;
 use Throwable;
 
@@ -89,7 +90,7 @@ abstract class BaseScraper
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
-            '--window-size='.config('scraper.browser_window_size'),
+            '--window-size=' . config('scraper.browser_window_size'),
         ];
     }
 
@@ -308,5 +309,22 @@ abstract class BaseScraper
     public function getBrowser(): Browser
     {
         return $this->browser;
+    }
+
+    /**
+     * Checks Redis before opening a browser. On cache hit - returns stored
+     * result instantly with no browser interaction. On miss - delegates to
+     * crawlDetailPage(), caches the result for 24 hours, then returns it.
+     *
+     * CrawlDetailPageJob calls this instead of crawlDetailPage() directly.
+     * Child scrapers never need to know caching exists.
+     */
+    public function fetchDetailPage(string $url): array
+    {
+        return Cache::remember(
+            "scraper:page:{$url}",
+            now()->addHours(24),
+            fn() => $this->crawlDetailPage($url)
+        );
     }
 }

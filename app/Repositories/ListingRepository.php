@@ -7,6 +7,7 @@ namespace App\Repositories;
 use App\Events\ListingSaved;
 use App\Models\Listing;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Handles all database interactions for the Listing model.
@@ -69,5 +70,29 @@ class ListingRepository
     public function countBySource(string $source): int
     {
         return Listing::where('source_profile_name', $source)->count();
+    }
+
+    /**
+     * Average price per sqm grouped by district for a given source.
+     *
+     * Result is cached for 1 hour - expensive aggregation across
+     * potentially thousands of rows. Cache invalidates automatically
+     * so next API call recalculates fresh.
+     *
+     * Used by GET /api/listings/stats.
+     */
+    public function getDistrictPriceStats(string $source): Collection
+    {
+        $key = "scraper:stats:district_prices:{$source}";
+
+        return Cache::remember($key, now()->addHour(), function () use ($source) {
+            return Listing::where('source_profile_name', $source)
+                ->whereNotNull('district')
+                ->whereNotNull('price_per_sqm')
+                ->selectRaw('district, ROUND(AVG(price_per_sqm), 2) as avg_price_per_sqm, COUNT(*) as listing_count')
+                ->groupBy('district')
+                ->orderByDesc('avg_price_per_sqm')
+                ->get();
+        });
     }
 }
