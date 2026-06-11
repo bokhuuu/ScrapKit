@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Middleware\RateLimitedMiddleware;
 use App\Jobs\Middleware\ThrottledRetryMiddleware;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use Illuminate\Bus\Batchable;
@@ -42,13 +43,18 @@ class CrawlIndexPageJob implements ShouldQueue
     public function middleware(): array
     {
         return [
+            new RateLimitedMiddleware(
+                source: $this->profile->getName(),
+                maxConcurrent: config('scraper.default_concurrency'),
+            ),
+
             new ThrottledRetryMiddleware,
         ];
     }
 
     public function handle(): void
     {
-        $scraper = new ($this->profile->getScraperClass())($this->profile);
+        $scraper = app($this->profile->getScraperClass(), ["profile" => $this->profile]);
 
         try {
             $urls = $scraper->crawlIndexPage($this->page);

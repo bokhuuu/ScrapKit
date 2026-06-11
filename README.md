@@ -200,8 +200,8 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 | ------------------ | ---------------------------- |
 | Framework          | Laravel 12, PHP 8.4          |
 | Browser automation | Laravel Dusk + ChromeDriver  |
-| Queue              | Database → Redis (Phase 10)  |
-| Cache              | Database → Redis (Phase 10)  |
+| Queue              | Redis                        |
+| Cache              | Redis                        |
 | Queue monitoring   | Laravel Horizon (Phase 10)   |
 | Export             | Maatwebsite Excel            |
 | Notifications      | Telegram Bot SDK + SMTP Mail |
@@ -269,7 +269,7 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 - `CrawlDetailPageJob` - crawl → DTO → pipeline → DB
 - `ScrapeCompletedJob` - fires when batch completes, marks run finished
 - `ThrottledRetryMiddleware` - backoff on retries
-- `RateLimitedMiddleware` - written, activates in Phase 10 with Redis
+- `RateLimitedMiddleware` - concurrent job throttling per domain via Redis
 - Failed job handling via `failed_jobs` table
 
 ### ✅ Orchestration
@@ -302,9 +302,9 @@ Rotating proxy support via `ProxyResolver` service - configurable per profile.
 
 ### ⬜ Caching & Performance
 
-- Redis setup
-- Cache scraped pages + price statistics
-- Rate limiting per domain
+- ✅ Redis setup
+- ✅ Rate limiting per domain (RateLimitedMiddleware active)
+- ⬜ Cache scraped pages + price statistics
 - Laravel Horizon queue monitoring
 - `BrowserPool` - parallel browser instances
 - `ProxyResolver` - rotating proxy support

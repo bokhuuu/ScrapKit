@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\DTOs\ListingDTO;
+use App\Jobs\Middleware\RateLimitedMiddleware;
 use App\Jobs\Middleware\ThrottledRetryMiddleware;
 use App\Repositories\ListingRepository;
 use App\Scrapers\Contracts\ScraperProfileInterface;
@@ -45,13 +46,18 @@ class CrawlDetailPageJob implements ShouldQueue
     public function middleware(): array
     {
         return [
+            new RateLimitedMiddleware(
+                source: $this->profile->getName(),
+                maxConcurrent: config('scraper.default_concurrency'),
+            ),
+
             new ThrottledRetryMiddleware,
         ];
     }
 
     public function handle(ListingRepository $repository): void
     {
-        $scraper = new ($this->profile->getScraperClass())($this->profile);
+        $scraper = app($this->profile->getScraperClass(), ["profile" => $this->profile]);
 
         $authStrategy = $this->profile->getAuthStrategy($scraper->getBrowser());
         if ($authStrategy !== null) {
