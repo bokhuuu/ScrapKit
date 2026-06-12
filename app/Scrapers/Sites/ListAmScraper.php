@@ -83,7 +83,7 @@ class ListAmScraper extends BaseScraper
 
         return [
             'external_id' => $this->extractSourceId($url),
-            'url' => $url,
+            'url' => strtok($url, '?'),
             'source_profile_name' => $this->profile->getName(),
             'listing_type' => 'sale',
             'property_type' => 'apartment',
