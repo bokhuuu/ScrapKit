@@ -7,134 +7,105 @@ namespace App\Scrapers\Browser;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 use Laravel\Dusk\Browser;
+use RuntimeException;
+use Throwable;
 
 /**
- * Manages a fixed pool of reusable Chrome browser sessions.
+ * Manages a fixed pool of reusable Chrome browser instances.
  *
- * Instead of creating and destroying a browser per job, BrowserPool
- * creates N browsers on initialization and keeps them alive permanently.
- * Jobs acquire a session ID from Redis, reconnect to the existing browser,
- * scrape, then release the session ID back to Redis.
+ * Lives as a singleton within a single worker process.
+ * Browsers are created once and reused across jobs - no cross-process
+ * sharing, no Redis session IDs. Each worker maintains its own pool.
  *
- * Redis coordinates acquisition atomically - two jobs can never
- * receive the same session ID simultaneously.
+ * Jobs acquire a browser, scrape, then release it back.
+ * If all browsers are busy, acquire() blocks until one is free.
  */
 class BrowserPool
 {
-    private const POOL_KEY = 'scraper:browser_pool';
+    /** @var Browser[] */
+    private array $available = [];
 
-    private const ACQUIRE_TIMEOUT_S = 30;
+    private bool $initialized = false;
 
     public function __construct(
         private readonly int $size,
     ) {}
 
     /**
-     * Create all browser instances and push their session IDs into Redis.
+     * Create all browser instances and hold them in memory.
      *
-     * Called once on application boot or before a scrape run starts.
-     * Safe to call multiple times - clears existing pool first.
+     * Called automatically on first acquire() if not already initialized.
+     * Safe to call explicitly before a scrape run starts.
      */
     public function initialize(): void
     {
-        Redis::del(self::POOL_KEY);
+        if ($this->initialized) {
+            return;
+        }
 
         for ($i = 0; $i < $this->size; $i++) {
-            $driver = $this->createDriver();
-            Redis::rpush(self::POOL_KEY, $driver->getSessionID());
+            $this->available[] = $this->createBrowser();
         }
+
+        $this->initialized = true;
     }
 
     /**
      * Acquire a browser from the pool.
      *
-     * Blocks until a session ID is available (up to ACQUIRE_TIMEOUT_S seconds).
-     * Reconnects to the existing Chrome session - no new browser is launched.
-     *
-     * Auto-initializes the pool if empty (e.g. first job after worker start).
-     * Uses a Redis lock to prevent multiple workers initializing simultaneously.
+     * Polls until a browser is available (up to 30 seconds).
+     * Auto-initializes the pool on first call.
      */
     public function acquire(): Browser
     {
-        if (Redis::llen(self::POOL_KEY) === 0) {
-            $lock = Cache::lock('scraper:pool:init', 10);
-            if ($lock->get()) {
-                try {
-                    $this->initialize();
-                } finally {
-                    $lock->release();
-                }
+        $this->initialize();
+
+        $waited = 0;
+
+        while (empty($this->available)) {
+            if ($waited >= 30) {
+                throw new RuntimeException('BrowserPool: timed out waiting for available browser.');
             }
+
+            usleep(200_000); // 200ms
+            $waited += 0.2;
         }
 
-        $result = Redis::blpop(self::POOL_KEY, self::ACQUIRE_TIMEOUT_S);
-
-        if ($result === null) {
-            throw new \RuntimeException('BrowserPool: timed out waiting for available browser.');
-        }
-
-        $sessionId = $result[1];
-
-        $options = new ChromeOptions;
-        $capabilities = DesiredCapabilities::chrome();
-        $capabilities->setCapability(ChromeOptions::CAPABILITY, $options);
-
-        $driver = RemoteWebDriver::createBySessionID(
-            $sessionId,
-            config('scraper.chromedriver_url'),
-            null,
-            null,
-            true,
-            DesiredCapabilities::chrome(),
-        );
-
-        return new Browser($driver);
+        return array_shift($this->available);
     }
 
     /**
      * Return a browser to the pool after use.
-     *
-     * Pushes the session ID back into Redis so the next waiting job can acquire it.
-     * Does not close the browser - it stays alive for reuse.
      */
     public function release(Browser $browser): void
     {
-        $sessionId = $browser->driver->getSessionID();
-        Redis::rpush(self::POOL_KEY, $sessionId);
+        $this->available[] = $browser;
     }
 
     /**
-     * Shut down all browser sessions and clear the pool from Redis.
+     * Shut down all browser instances and reset the pool.
      *
-     * Called on application shutdown or after a scrape run completes.
+     * Called after a scrape run completes or on worker shutdown.
      */
     public function teardown(): void
     {
-        while (true) {
-            $result = Redis::lpop(self::POOL_KEY);
-
-            if ($result === null) {
-                break;
-            }
-
+        foreach ($this->available as $browser) {
             try {
-                $driver = RemoteWebDriver::createBySessionID(
-                    $result,
-                    config('scraper.chromedriver_url'),
-                );
-                $driver->quit();
-            } catch (\Throwable) {
+                $browser->quit();
+            } catch (Throwable) {
+                // Already closed - nothing to do.
             }
         }
+
+        $this->available = [];
+        $this->initialized = false;
     }
 
     /**
-     * Spin up a single Chrome instance with stealth configuration.
+     * Spin up a single Chrome instance.
      */
-    private function createDriver(): RemoteWebDriver
+    private function createBrowser(): Browser
     {
         $options = new ChromeOptions;
         $options->addArguments([
@@ -148,11 +119,13 @@ class BrowserPool
         $capabilities = DesiredCapabilities::chrome();
         $capabilities->setCapability(ChromeOptions::CAPABILITY, $options);
 
-        return RemoteWebDriver::create(
+        $driver = RemoteWebDriver::create(
             config('scraper.chromedriver_url'),
             $capabilities,
             (int) config('scraper.browser_connect_timeout_ms'),
             (int) config('scraper.browser_request_timeout_ms'),
         );
+
+        return new Browser($driver);
     }
 }

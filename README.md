@@ -72,7 +72,7 @@ Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 
 ## Performance
 
-> Redis active. BrowserPool in-process redesign pending. Benchmarks coming after BrowserPool is complete.
+> Redis active. BrowserPool wired and active. Benchmarks coming after first full production run.
 
 | Mode                            | Expected throughput  |
 | ------------------------------- | -------------------- |
@@ -254,7 +254,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - `StealthConfig` - ChromeDriver fingerprint hardening
 - `ListAmScraper` - verified selectors, label-based spec extraction, image URL collection
 - `config/scraper.php` - all settings configurable via `.env`
-- ⬜ `BrowserPool` - written, needs in-process redesign (Redis session reconnection unreliable)
+- `BrowserPool` - in-process pool, reuses open browsers across jobs, no Redis session IDs
 
 ### ✅ Authentication
 
@@ -305,7 +305,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ Rate limiting per domain (RateLimitedMiddleware active)
 - ✅ Cache scraped pages + price statistics
 - ✅ Laravel Horizon queue monitoring
-- ⬜ `BrowserPool` - written, needs in-process redesign before wiring
+- ✅ `BrowserPool` - in-process pool, wired into CrawlDetailPageJob
 - ✅ `ProxyResolver` - rotating proxy support
 
 ### ⬜ API Layer
@@ -366,7 +366,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 
 - Phone numbers on list.am require authenticated login - Dusk handles this but adds scrape time per listing
 - JavaScript-rendered pages require ChromeDriver - cannot use lightweight HTTP-only scraping for all sites
-- BrowserPool written but session reconnection via ChromeDriver is unreliable - needs in-process redesign
+- BrowserPool uses in-process browser reuse - each worker maintains its own pool, no cross-process sharing
 - ProxyResolver implemented - activate by setting SCRAPER_PROXY_ENABLED=true with proxy list in .env
 - Image galleries on list.am load lazily - only the first image captured per listing
 - list.am does not expose individual agency names on listing pages - agency vs owner split is tracked, specific agency identity is not
