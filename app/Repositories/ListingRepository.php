@@ -95,4 +95,16 @@ class ListingRepository
                 ->get();
         });
     }
+
+    /**
+     * Count listings where a specific field is null for a given source.
+     *
+     * Used by DriftDetector to calculate null rates on monitored fields.
+     */
+    public function countNullField(string $source, string $field): int
+    {
+        return Listing::where('source_profile_name', $source)
+            ->whereNull($field)
+            ->count();
+    }
 }

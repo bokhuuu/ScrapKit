@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Events\ScrapeCompleted;
 use App\Repositories\ListingRepository;
 use App\Repositories\ScraperRunRepository;
+use App\Scrapers\DriftDetector;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -33,7 +34,7 @@ class ScrapeCompletedJob implements ShouldQueue
         $this->onQueue('completed');
     }
 
-    public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository): void
+    public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository, DriftDetector $driftDetector): void
     {
         $listingCount = $listingRepository->countBySource($this->source);
 
@@ -42,6 +43,8 @@ class ScrapeCompletedJob implements ShouldQueue
             savedListings: $listingCount,
             scrapedPages: $this->scrapedPages,
         );
+
+        $driftDetector->check($this->scraperRunId, $this->source, $listingCount);
 
         event(new ScrapeCompleted(
             scraperRunId: $this->scraperRunId,

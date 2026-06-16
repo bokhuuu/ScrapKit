@@ -297,4 +297,19 @@ return [
     */
     'api_rate_limit'      => (int) env('API_RATE_LIMIT', 60),
     'api_per_token_limit' => (int) env('API_PER_TOKEN_LIMIT', 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Drift Detection
+    |--------------------------------------------------------------------------
+    |
+    | drift_min_listings  - minimum listings expected per run.
+    |                       if a run returns fewer, ScrapeFailed event fires.
+    | drift_max_null_rate - maximum acceptable null rate for key fields (0-1).
+    |                       0.5 means if >50% of listings have null district,
+    |                       ScrapeFailed event fires.
+    |
+    */
+    'drift_min_listings'  => (int) env('SCRAPER_DRIFT_MIN_LISTINGS', 10),
+    'drift_max_null_rate' => (float) env('SCRAPER_DRIFT_MAX_NULL_RATE', 0.5),
 ];
