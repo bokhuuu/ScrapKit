@@ -74,7 +74,7 @@ final class ListingDTO
             currency: $data['currency'] ?? null,
             pricePerSqm: isset($data['price_per_sqm']) ? (float) $data['price_per_sqm'] : null,
 
-            area: isset($data['area']) ? (float) $data['area'] : null,
+            area: isset($data['area']) ? (float) str_replace(',', '.', (string) $data['area']) : null,
 
             rooms: isset($data['rooms']) ? (int) $data['rooms'] : null,
             bathrooms: isset($data['bathrooms']) ? (int) $data['bathrooms'] : null,
