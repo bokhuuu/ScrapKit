@@ -262,21 +262,20 @@ return [
     ],
 
     /*
-|--------------------------------------------------------------------------
-| Proxy Configuration
-|--------------------------------------------------------------------------
-|
-| When enabled, ProxyResolver rotates through the proxy list on each
-| request so the target site never sees the same IP twice in a row.
-|
-| proxy_enabled  - master switch, set false for local development.
-| proxies        - comma-separated list of proxy addresses in .env.
-| proxy_strategy - 'random' or 'round_robin'.
-| proxy_username - credentials for authenticated proxy services.
-| proxy_password - credentials for authenticated proxy services.
-|
-*/
-
+    |--------------------------------------------------------------------------
+    | Proxy Configuration
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, ProxyResolver rotates through the proxy list on each
+    | request so the target site never sees the same IP twice in a row.
+    |
+    | proxy_enabled  - master switch, set false for local development.
+    | proxies        - comma-separated list of proxy addresses in .env.
+    | proxy_strategy - 'random' or 'round_robin'.
+    | proxy_username - credentials for authenticated proxy services.
+    | proxy_password - credentials for authenticated proxy services.
+    |
+    */
     'proxy_enabled' => (bool) env('SCRAPER_PROXY_ENABLED', false),
 
     'proxies' => array_filter(explode(',', env('SCRAPER_PROXIES', ''))),
@@ -286,4 +285,16 @@ return [
     'proxy_username' => env('SCRAPER_PROXY_USERNAME'),
 
     'proxy_password' => env('SCRAPER_PROXY_PASSWORD'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | api_rate_limit         - max requests per minute across all clients globally.
+    | api_per_token_limit    - max requests per minute per Sanctum token.
+    |
+    */
+    'api_rate_limit'      => (int) env('API_RATE_LIMIT', 60),
+    'api_per_token_limit' => (int) env('API_PER_TOKEN_LIMIT', 30),
 ];

@@ -308,19 +308,19 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ `BrowserPool` - in-process pool, wired into CrawlDetailPageJob
 - ✅ `ProxyResolver` - rotating proxy support
 
-### ⬜ API Layer
+### 🔄 API Layer
 
 - ✅ Sanctum authentication - token-based, one token per consuming project
 - ✅ Security headers middleware - X-Content-Type-Options, X-Frame-Options, Referrer-Policy, X-XSS-Protection
+- ✅ API rate limiting - 60 req/min global, 30 req/min per token (Redis-backed, config-driven)
+- ✅ Per-token API rate limiting - fair usage per Sanctum token via named RateLimiter
 - `POST /api/scrape/start`
 - `GET  /api/scrape/status`
 - `POST /api/scrape/cancel`
 - `GET  /api/listings`
 - `GET  /api/listings/stats`
 - `GET  /api/health`
-- API rate limiting
 - FormRequest validation for all POST endpoints
-- Per-token API rate limiting
 
 ### ⬜ Testing
 

@@ -13,6 +13,9 @@ use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Browser\ProxyResolver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Application service provider for bootstrapping services.
@@ -38,6 +41,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /**
+         * Global API rate limiter - caps total requests per minute across all clients.
+         * Protects the server regardless of how many tokens exist.
+         */
+        RateLimiter::for('api.global', function () {
+            return Limit::perMinute(config('scraper.api_rate_limit', 60));
+        });
+        /**
+         * Per-token rate limiter - caps requests per minute per Sanctum token.
+         * Ensures no single client can starve others. Falls back to IP if unauthenticated.
+         */
+        RateLimiter::for('api.per_token', function (Request $request) {
+            return Limit::perMinute(config('scraper.api_per_token_limit', 30))
+                ->by($request->user()?->id ?: $request->ip());
+        });
+
         Event::listen(ScrapeCompleted::class, SendScrapeCompletedNotification::class);
         Event::listen(ScrapeFailed::class, SendScrapeFailedNotification::class);
         Event::listen(ScrapeCompleted::class, TriggerScrapeExport::class);

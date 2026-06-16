@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->appendToGroup('api', [
             SecurityHeadersMiddleware::class,
+            'throttle:api.global',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
