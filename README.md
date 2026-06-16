@@ -325,12 +325,11 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 
 ### ⬜ Testing
 
-- ✅ Unit tests for all pipeline stages (Pest) - all 10 stages covered, 34 assertions
-- ⬜ Mock browser responses - deferred; ListAmScraper tightly coupled to Browser
-  by design, testable via Dusk fixture HTML after Docker setup
+- ✅ Unit tests for all pipeline stages - all 10 stages, 70 tests, 110 assertions total
 - ✅ Repository tests with SQLite in-memory - ListingRepository + ScraperRunRepository
-- ✅ Feature test: full scrape run - ScraperManager orchestration tested with Bus::fake()
-- Test coverage report + badge
+- ✅ Feature tests - ScraperManager, all 3 console commands, all API endpoints, ScraperPipeline
+- ⬜ Mock browser responses - deferred; browser layer untestable without ChromeDriver by design
+- ⬜ CI test badge - coming in Phase 13 with GitHub Actions
 
 ### ⬜ Docker & Deployment
 
