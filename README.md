@@ -326,8 +326,9 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 ### ⬜ Testing
 
 - ✅ Unit tests for all pipeline stages (Pest) - all 10 stages covered, 34 assertions
-- Mock browser responses
-- Repository tests with SQLite in-memory
+- ⬜ Mock browser responses - deferred; ListAmScraper tightly coupled to Browser
+  by design, testable via Dusk fixture HTML after Docker setup
+- ✅ Repository tests with SQLite in-memory - ListingRepository + ScraperRunRepository
 - Feature test: full scrape run end-to-end
 - Test coverage report + badge
 
