@@ -59,8 +59,8 @@ Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 
 | Sheet                 | Content                                         |
 | --------------------- | ----------------------------------------------- |
-| All Listings          | Full raw dataset — all scraped fields           |
-| Market Overview       | Headline statistics — avg price, median, supply |
+| All Listings          | Full raw dataset - all scraped fields           |
+| Market Overview       | Headline statistics - avg price, median, supply |
 | District Analysis     | Pricing and supply breakdown per district       |
 | Room Type Analysis    | Product mix and pricing by bedroom count        |
 | Building Stock        | Construction type and condition distribution    |
@@ -310,7 +310,8 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 
 ### ⬜ API Layer
 
-- Sanctum authentication
+- ✅ Sanctum authentication - token-based, one token per consuming project
+- ✅ Security headers middleware - X-Content-Type-Options, X-Frame-Options, Referrer-Policy, X-XSS-Protection
 - `POST /api/scrape/start`
 - `GET  /api/scrape/status`
 - `POST /api/scrape/cancel`
@@ -318,7 +319,6 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - `GET  /api/listings/stats`
 - `GET  /api/health`
 - API rate limiting
-- Security headers middleware
 - FormRequest validation for all POST endpoints
 - Per-token API rate limiting
 
