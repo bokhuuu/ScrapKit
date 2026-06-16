@@ -315,12 +315,12 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ API rate limiting - 60 req/min global, 30 req/min per token (Redis-backed, config-driven)
 - ✅ Per-token API rate limiting - fair usage per Sanctum token via named RateLimiter
 - ✅ FormRequest validation - StartScrapeRequest, CancelScrapeRequest with config-driven source validation
-- `POST /api/scrape/start`
-- `GET  /api/scrape/status`
-- `POST /api/scrape/cancel`
-- `GET  /api/listings`
-- `GET  /api/listings/stats`
-- `GET  /api/health`
+- ✅ POST /api/scrape/start - triggers scrape run, returns run_id, 202 Accepted
+- ✅ GET /api/scrape/status - returns latest run state and progress
+- ✅ POST /api/scrape/cancel - cancels active run by ID
+- ✅ GET /api/listings - paginated listings with district/price filters
+- ✅ GET /api/listings/stats - avg price per sqm by district, Redis-cached
+- ✅ GET /api/health - database, Redis, queue status check
 
 ### ⬜ Testing
 
