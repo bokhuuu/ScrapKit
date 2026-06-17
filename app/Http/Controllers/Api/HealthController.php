@@ -29,8 +29,8 @@ class HealthController extends Controller
     {
         $checks = [
             'database' => $this->checkDatabase(),
-            'redis'    => $this->checkRedis(),
-            'queue'    => $this->checkQueue(),
+            'redis' => $this->checkRedis(),
+            'queue' => $this->checkQueue(),
         ];
 
         $healthy = ! in_array('error', $checks, true);

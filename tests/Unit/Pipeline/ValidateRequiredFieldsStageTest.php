@@ -18,12 +18,12 @@ test('it throws when a required field is null', function () {
     $stage = new ValidateRequiredFieldsStage(['price']);
     $dto = makeListing(['price' => null]);
 
-    expect(fn() => $stage->handle($dto))->toThrow(InvalidListingException::class);
+    expect(fn () => $stage->handle($dto))->toThrow(InvalidListingException::class);
 });
 
 test('it throws when a required field is empty string', function () {
     $stage = new ValidateRequiredFieldsStage(['district']);
     $dto = makeListing(['district' => '']);
 
-    expect(fn() => $stage->handle($dto))->toThrow(InvalidListingException::class);
+    expect(fn () => $stage->handle($dto))->toThrow(InvalidListingException::class);
 });

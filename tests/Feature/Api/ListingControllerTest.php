@@ -14,7 +14,7 @@ beforeEach(function () {
 });
 
 test('listings endpoint returns paginated results', function () {
-    $repository = new ListingRepository();
+    $repository = new ListingRepository;
     $repository->updateOrCreate(makeListing()->toArray());
 
     $this->getJson('/api/listings?source=listam')
@@ -23,12 +23,12 @@ test('listings endpoint returns paginated results', function () {
 });
 
 test('listings endpoint filters by district', function () {
-    $repository = new ListingRepository();
+    $repository = new ListingRepository;
     $repository->updateOrCreate(makeListing(['district' => 'Kentron'])->toArray());
     $repository->updateOrCreate(makeListing([
         'external_id' => 'test-456',
-        'url'         => 'https://list.am/en/item/456',
-        'district'    => 'Arabkir',
+        'url' => 'https://list.am/en/item/456',
+        'district' => 'Arabkir',
     ])->toArray());
 
     $response = $this->getJson('/api/listings?source=listam&district=Kentron')

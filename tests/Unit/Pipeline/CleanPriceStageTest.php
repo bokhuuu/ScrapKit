@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\CleanPriceStage;
 
-$stage = new CleanPriceStage();
+$stage = new CleanPriceStage;
 
 test('it cleans a formatted price string to a float', function () use ($stage) {
     $dto = makeListing(['price' => 150000]);

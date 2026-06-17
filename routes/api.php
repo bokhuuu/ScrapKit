@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\ScrapeController;
-
+use Illuminate\Support\Facades\Route;
 
 Route::get('/health', HealthController::class);
 

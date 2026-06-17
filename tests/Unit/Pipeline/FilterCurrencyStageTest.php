@@ -18,7 +18,7 @@ test('it throws when currency is not accepted', function () {
     $stage = new FilterCurrencyStage(['USD']);
     $dto = makeListing(['currency' => 'AMD']);
 
-    expect(fn() => $stage->handle($dto))->toThrow(InvalidListingException::class);
+    expect(fn () => $stage->handle($dto))->toThrow(InvalidListingException::class);
 });
 
 test('it passes through when currency is null', function () {

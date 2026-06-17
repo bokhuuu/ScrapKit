@@ -29,5 +29,5 @@ test('it throws when listing already exists', function () {
     $stage = new DeduplicateStage($repository);
     $dto = makeListing();
 
-    expect(fn() => $stage->handle($dto))->toThrow(DuplicateListingException::class);
+    expect(fn () => $stage->handle($dto))->toThrow(DuplicateListingException::class);
 });

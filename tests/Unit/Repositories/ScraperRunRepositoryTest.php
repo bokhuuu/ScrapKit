@@ -9,13 +9,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-$repository = new ScraperRunRepository();
+$repository = new ScraperRunRepository;
 
 function runData(array $overrides = []): array
 {
     return array_merge([
-        'source'     => 'listam',
-        'state'      => ScraperState::Pending,
+        'source' => 'listam',
+        'state' => ScraperState::Pending,
         'started_at' => now()->toDateTimeString(),
     ], $overrides);
 }

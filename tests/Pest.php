@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\DTOs\ListingDTO;
+use Tests\DuskTestCase;
 use Tests\TestCase;
 
 /*
@@ -16,7 +17,7 @@ use Tests\TestCase;
 |
 */
 
-pest()->extend(Tests\DuskTestCase::class)
+pest()->extend(DuskTestCase::class)
     ->in('Browser');
 
 pest()->extend(TestCase::class)
@@ -52,30 +53,30 @@ expect()->extend('toBeOne', function () {
 function makeListing(array $overrides = []): ListingDTO
 {
     return ListingDTO::fromArray(array_merge([
-        'external_id'         => 'test-123',
-        'url'                 => 'https://list.am/en/item/123',
+        'external_id' => 'test-123',
+        'url' => 'https://list.am/en/item/123',
         'source_profile_name' => 'listam',
-        'listing_type'        => 'sale',
-        'property_type'       => 'apartment',
-        'price'               => 150000,
-        'currency'            => 'USD',
-        'price_per_sqm'       => null,
-        'area'                => 75.0,
-        'rooms'               => 3,
-        'bathrooms'           => null,
-        'floor'               => 4,
-        'total_floors'        => 9,
-        'ceiling_height'      => null,
-        'building_type'       => 'Panel',
-        'condition'           => 'Good',
-        'is_new_building'     => false,
-        'district'            => 'Kentron',
-        'address'             => 'Mashtots Ave 15',
-        'phone'               => null,
-        'agency_name'         => null,
-        'image_urls'          => [],
-        'extras'              => [],
-        'listing_date'        => '2024-01-15 10:00:00',
-        'scraped_at'          => '2024-01-15 12:00:00',
+        'listing_type' => 'sale',
+        'property_type' => 'apartment',
+        'price' => 150000,
+        'currency' => 'USD',
+        'price_per_sqm' => null,
+        'area' => 75.0,
+        'rooms' => 3,
+        'bathrooms' => null,
+        'floor' => 4,
+        'total_floors' => 9,
+        'ceiling_height' => null,
+        'building_type' => 'Panel',
+        'condition' => 'Good',
+        'is_new_building' => false,
+        'district' => 'Kentron',
+        'address' => 'Mashtots Ave 15',
+        'phone' => null,
+        'agency_name' => null,
+        'image_urls' => [],
+        'extras' => [],
+        'listing_date' => '2024-01-15 10:00:00',
+        'scraped_at' => '2024-01-15 12:00:00',
     ], $overrides));
 }

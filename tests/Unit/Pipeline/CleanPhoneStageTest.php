@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\CleanPhoneStage;
 
-$stage = new CleanPhoneStage();
+$stage = new CleanPhoneStage;
 
 test('it strips non-numeric characters from phone', function () use ($stage) {
     $dto = makeListing(['phone' => '+374 (99) 123-456']);

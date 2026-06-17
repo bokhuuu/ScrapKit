@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\CleanBuildingTypeStage;
 
-$stage = new CleanBuildingTypeStage();
+$stage = new CleanBuildingTypeStage;
 
 test('it lowercases the building type', function () use ($stage) {
     $dto = makeListing(['building_type' => 'Panel']);

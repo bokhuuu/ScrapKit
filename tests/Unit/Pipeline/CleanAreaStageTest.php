@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\CleanAreaStage;
 
-$stage = new CleanAreaStage();
+$stage = new CleanAreaStage;
 
 test('it cleans a formatted area string to a float', function () use ($stage) {
     $dto = makeListing(['area' => '75.5 m²']);

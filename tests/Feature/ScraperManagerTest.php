@@ -20,7 +20,7 @@ function makeProfile(int $pages = 2): ScraperProfileInterface
     $profile->shouldReceive('getMaxPages')->andReturn($pages);
     $profile->shouldReceive('getQueueConfig')->andReturn([]);
     $profile->shouldReceive('buildIndexUrl')->andReturnUsing(
-        fn(int $page) => "https://list.am/en/category/60/{$page}"
+        fn (int $page) => "https://list.am/en/category/60/{$page}"
     );
 
     return $profile;
@@ -29,7 +29,7 @@ function makeProfile(int $pages = 2): ScraperProfileInterface
 test('it creates a scraper run record when started', function () {
     Bus::fake();
 
-    $manager = new ScraperManager(new ScraperRunRepository());
+    $manager = new ScraperManager(new ScraperRunRepository);
     $manager->run(makeProfile());
 
     expect(ScraperRun::count())->toBe(1);
@@ -40,7 +40,7 @@ test('it creates a scraper run record when started', function () {
 test('it dispatches one crawl index job per page', function () {
     Bus::fake();
 
-    $manager = new ScraperManager(new ScraperRunRepository());
+    $manager = new ScraperManager(new ScraperRunRepository);
     $manager->run(makeProfile(pages: 3));
 
     Bus::assertBatchCount(1);
@@ -49,7 +49,7 @@ test('it dispatches one crawl index job per page', function () {
 test('it marks a run as cancelled', function () {
     Bus::fake();
 
-    $manager = new ScraperManager(new ScraperRunRepository());
+    $manager = new ScraperManager(new ScraperRunRepository);
     $manager->run(makeProfile());
 
     $run = ScraperRun::first();

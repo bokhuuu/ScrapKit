@@ -33,8 +33,8 @@ test('scraper:status warns when no runs exist', function () {
 
 test('scraper:status shows latest run', function () {
     ScraperRun::create([
-        'source'     => 'listam',
-        'state'      => ScraperState::Completed,
+        'source' => 'listam',
+        'state' => ScraperState::Completed,
         'started_at' => now(),
     ]);
 
@@ -50,9 +50,9 @@ test('scraper:cancel fails when run not found', function () {
 
 test('scraper:cancel warns when run is already terminal', function () {
     $run = ScraperRun::create([
-        'source'      => 'listam',
-        'state'       => ScraperState::Completed,
-        'started_at'  => now(),
+        'source' => 'listam',
+        'state' => ScraperState::Completed,
+        'started_at' => now(),
         'finished_at' => now(),
     ]);
 
@@ -65,8 +65,8 @@ test('scraper:cancel cancels an active run', function () {
     Bus::fake();
 
     $run = ScraperRun::create([
-        'source'     => 'listam',
-        'state'      => ScraperState::Running,
+        'source' => 'listam',
+        'state' => ScraperState::Running,
         'started_at' => now(),
     ]);
 

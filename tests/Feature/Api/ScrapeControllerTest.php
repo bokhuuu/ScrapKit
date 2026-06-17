@@ -37,8 +37,8 @@ test('status returns 404 when no runs exist', function () {
 
 test('status returns latest run', function () {
     ScraperRun::create([
-        'source'     => 'listam',
-        'state'      => ScraperState::Running,
+        'source' => 'listam',
+        'state' => ScraperState::Running,
         'started_at' => now(),
     ]);
 
@@ -49,8 +49,8 @@ test('status returns latest run', function () {
 
 test('cancel returns success for active run', function () {
     $run = ScraperRun::create([
-        'source'     => 'listam',
-        'state'      => ScraperState::Running,
+        'source' => 'listam',
+        'state' => ScraperState::Running,
         'started_at' => now(),
     ]);
 

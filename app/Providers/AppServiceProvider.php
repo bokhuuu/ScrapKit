@@ -11,11 +11,11 @@ use App\Listeners\SendScrapeFailedNotification;
 use App\Listeners\TriggerScrapeExport;
 use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Browser\ProxyResolver;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Http\Request;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Application service provider for bootstrapping services.
@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->bind(ProxyResolver::class, fn() => new ProxyResolver);
+        $this->app->bind(ProxyResolver::class, fn () => new ProxyResolver);
     }
 
     /**

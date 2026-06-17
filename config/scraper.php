@@ -6,6 +6,7 @@ use App\Scrapers\Exports\CsvExporter;
 use App\Scrapers\Exports\ExcelExporter;
 use App\Scrapers\Exports\JsonExporter;
 use App\Scrapers\Profiles\ListAmProfile;
+use App\Scrapers\Profiles\Reports\RealEstateMarketReport;
 
 return [
 
@@ -258,7 +259,7 @@ return [
         'excel' => ExcelExporter::class,
         'csv' => CsvExporter::class,
         'json' => JsonExporter::class,
-        'real_estate_report' => \App\Scrapers\Profiles\Reports\RealEstateMarketReport::class,
+        'real_estate_report' => RealEstateMarketReport::class,
     ],
 
     /*
@@ -295,7 +296,7 @@ return [
     | api_per_token_limit    - max requests per minute per Sanctum token.
     |
     */
-    'api_rate_limit'      => (int) env('API_RATE_LIMIT', 60),
+    'api_rate_limit' => (int) env('API_RATE_LIMIT', 60),
     'api_per_token_limit' => (int) env('API_PER_TOKEN_LIMIT', 30),
 
     /*
@@ -310,6 +311,6 @@ return [
     |                       ScrapeFailed event fires.
     |
     */
-    'drift_min_listings'  => (int) env('SCRAPER_DRIFT_MIN_LISTINGS', 10),
+    'drift_min_listings' => (int) env('SCRAPER_DRIFT_MIN_LISTINGS', 10),
     'drift_max_null_rate' => (float) env('SCRAPER_DRIFT_MAX_NULL_RATE', 0.5),
 ];

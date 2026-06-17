@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\NormalizeStringFieldsStage;
 
-$stage = new NormalizeStringFieldsStage();
+$stage = new NormalizeStringFieldsStage;
 
 test('it trims whitespace from string fields', function () use ($stage) {
     $dto = makeListing(['district' => '  Kentron  ']);

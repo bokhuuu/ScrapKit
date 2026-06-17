@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Scrapers\Pipeline\Stages\CalculatePricePerSqmStage;
 
-$stage = new CalculatePricePerSqmStage();
+$stage = new CalculatePricePerSqmStage;
 
 test('it calculates price per sqm from price and area', function () use ($stage) {
     $dto = makeListing(['price' => 150000.0, 'area' => 75.0]);

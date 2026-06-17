@@ -8,23 +8,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-$repository = new ListingRepository();
+$repository = new ListingRepository;
 
 function listingData(array $overrides = []): array
 {
     return array_merge([
-        'external_id'         => 'test-123',
+        'external_id' => 'test-123',
         'source_profile_name' => 'listam',
-        'url'                 => 'https://list.am/en/item/123',
-        'listing_type'        => 'sale',
-        'property_type'       => 'apartment',
-        'price'               => 150000.0,
-        'currency'            => 'USD',
-        'price_per_sqm'       => 2000.0,
-        'area'                => 75.0,
-        'images'              => [],
-        'extras'              => [],
-        'scraped_at'          => now()->toDateTimeString(),
+        'url' => 'https://list.am/en/item/123',
+        'listing_type' => 'sale',
+        'property_type' => 'apartment',
+        'price' => 150000.0,
+        'currency' => 'USD',
+        'price_per_sqm' => 2000.0,
+        'area' => 75.0,
+        'images' => [],
+        'extras' => [],
+        'scraped_at' => now()->toDateTimeString(),
     ], $overrides);
 }
 
@@ -56,7 +56,7 @@ test('it finds listings by source', function () use ($repository) {
     $repository->updateOrCreate(listingData());
     $repository->updateOrCreate(listingData([
         'external_id' => 'test-456',
-        'url'         => 'https://list.am/en/item/456',
+        'url' => 'https://list.am/en/item/456',
     ]));
 
     $results = $repository->findBySource('listam');

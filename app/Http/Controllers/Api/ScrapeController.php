@@ -33,11 +33,11 @@ class ScrapeController extends Controller
      */
     public function start(StartScrapeRequest $request): JsonResponse
     {
-        $source  = $request->validated('source');
-        $pages   = $request->validated('pages');
+        $source = $request->validated('source');
+        $pages = $request->validated('pages');
 
         $profileClass = config("scraper.profiles.{$source}");
-        $profile      = app($profileClass);
+        $profile = app($profileClass);
 
         $this->manager->run($profile, $pages);
 
@@ -45,9 +45,9 @@ class ScrapeController extends Controller
 
         return response()->json([
             'message' => 'Scrape started.',
-            'run_id'  => $run->id,
-            'source'  => $source,
-            'pages'   => $pages ?? $profile->getMaxPages(),
+            'run_id' => $run->id,
+            'source' => $source,
+            'pages' => $pages ?? $profile->getMaxPages(),
         ], 202);
     }
 
@@ -57,20 +57,20 @@ class ScrapeController extends Controller
     public function status(): JsonResponse
     {
         $source = request()->query('source');
-        $run    = $this->runRepository->findLatest($source);
+        $run = $this->runRepository->findLatest($source);
 
         if (! $run) {
             return response()->json(['message' => 'No runs found for this source.'], 404);
         }
 
         return response()->json([
-            'run_id'          => $run->id,
-            'source'          => $run->source,
-            'state'           => $run->state,
-            'started_at'      => $run->started_at,
-            'finished_at'     => $run->finished_at,
-            'scraped_pages'   => $run->scraped_pages,
-            'saved_listings'  => $run->saved_listings,
+            'run_id' => $run->id,
+            'source' => $run->source,
+            'state' => $run->state,
+            'started_at' => $run->started_at,
+            'finished_at' => $run->finished_at,
+            'scraped_pages' => $run->scraped_pages,
+            'saved_listings' => $run->saved_listings,
         ]);
     }
 
@@ -80,14 +80,14 @@ class ScrapeController extends Controller
     public function cancel(CancelScrapeRequest $request): JsonResponse
     {
         $runId = $request->validated('run_id');
-        $run   = $this->runRepository->findById($runId);
+        $run = $this->runRepository->findById($runId);
 
         $this->manager->cancel($runId);
 
         return response()->json([
             'message' => 'Scrape run cancelled.',
-            'run_id'  => $runId,
-            'source'  => $run->source,
+            'run_id' => $runId,
+            'source' => $run->source,
         ]);
     }
 }

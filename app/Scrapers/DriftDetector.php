@@ -62,7 +62,7 @@ class DriftDetector
         Log::warning('Drift detection: low listing count', [
             'run_id' => $scraperRunId,
             'source' => $source,
-            'count'  => $listingCount,
+            'count' => $listingCount,
             'minimum' => $minimum,
         ]);
 
@@ -79,7 +79,7 @@ class DriftDetector
     private function checkNullRates(int $scraperRunId, string $source): void
     {
         $maxNullRate = config('scraper.drift_max_null_rate');
-        $total       = $this->listingRepository->countBySource($source);
+        $total = $this->listingRepository->countBySource($source);
 
         if ($total === 0) {
             return;
@@ -87,21 +87,21 @@ class DriftDetector
 
         foreach (self::MONITORED_FIELDS as $field) {
             $nullCount = $this->listingRepository->countNullField($source, $field);
-            $nullRate  = $nullCount / $total;
+            $nullRate = $nullCount / $total;
 
             if ($nullRate <= $maxNullRate) {
                 continue;
             }
 
             $percentage = round($nullRate * 100);
-            $message    = "Drift detected: {$percentage}% null rate on '{$field}' (max: " . ($maxNullRate * 100) . "%)";
+            $message = "Drift detected: {$percentage}% null rate on '{$field}' (max: ".($maxNullRate * 100).'%)';
 
             Log::warning('Drift detection: high null rate', [
-                'run_id'    => $scraperRunId,
-                'source'    => $source,
-                'field'     => $field,
+                'run_id' => $scraperRunId,
+                'source' => $source,
+                'field' => $field,
                 'null_rate' => $nullRate,
-                'max'       => $maxNullRate,
+                'max' => $maxNullRate,
             ]);
 
             event(new ScrapeFailed(

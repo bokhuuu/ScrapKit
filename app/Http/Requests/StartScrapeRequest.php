@@ -31,8 +31,8 @@ class StartScrapeRequest extends FormRequest
         $validSources = array_keys(config('scraper.profiles', []));
 
         return [
-            'source' => ['required', 'string', 'in:' . implode(',', $validSources)],
-            'pages'  => ['sometimes', 'integer', 'min:1', 'max:500'],
+            'source' => ['required', 'string', 'in:'.implode(',', $validSources)],
+            'pages' => ['sometimes', 'integer', 'min:1', 'max:500'],
         ];
     }
 }

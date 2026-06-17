@@ -61,7 +61,7 @@ class ListingController extends Controller
 
         return response()->json([
             'source' => $source,
-            'data'   => $stats,
+            'data' => $stats,
         ]);
     }
 }

@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
         );
 
         $larakit = $user->createToken('larakit')->plainTextToken;
-        $laraai  = $user->createToken('laraai')->plainTextToken;
+        $laraai = $user->createToken('laraai')->plainTextToken;
 
         $this->command->info("LaraKit token: {$larakit}");
         $this->command->info("LaraAI token:  {$laraai}");

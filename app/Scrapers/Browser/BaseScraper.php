@@ -93,13 +93,13 @@ abstract class BaseScraper
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
-            '--window-size=' . config('scraper.browser_window_size'),
+            '--window-size='.config('scraper.browser_window_size'),
         ];
 
         $proxy = $this->proxyResolver->resolve();
 
         if ($proxy !== null) {
-            $args[] = '--proxy-server=' . $this->proxyResolver->withCredentials($proxy);
+            $args[] = '--proxy-server='.$this->proxyResolver->withCredentials($proxy);
         }
 
         return $args;
@@ -335,7 +335,7 @@ abstract class BaseScraper
         return Cache::remember(
             "scraper:page:{$url}",
             now()->addHours(24),
-            fn() => $this->crawlDetailPage($url)
+            fn () => $this->crawlDetailPage($url)
         );
     }
 }
