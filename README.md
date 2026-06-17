@@ -182,7 +182,7 @@ Configure in `app/Console/Kernel.php`. No cron setup needed beyond Laravel's sta
 - Failed queue jobs stored in `failed_jobs` table - inspectable and replayable
 - `ScraperRun` model tracks full lifecycle: `pending → running → completed / failed`
 - Telegram + email notification fired on `ScrapeFailed` and `ScrapeCompleted` events
-- Sentry integration planned for Phase 13
+- Sentry error tracking wired — set SENTRY_LARAVEL_DSN in .env to activate
 
 ---
 
@@ -323,21 +323,22 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ GET /api/listings/stats - avg price per sqm by district, Redis-cached
 - ✅ GET /api/health - database, Redis, queue status check
 
-### ⬜ Testing
+### ✅ Testing
 
 - ✅ Unit tests for all pipeline stages - all 10 stages, 70 tests, 110 assertions total
 - ✅ Repository tests with SQLite in-memory - ListingRepository + ScraperRunRepository
 - ✅ Feature tests - ScraperManager, all 3 console commands, all API endpoints, ScraperPipeline
 - ⬜ Mock browser responses - deferred; browser layer untestable without ChromeDriver by design
-- ⬜ CI test badge - coming in Phase 13 with GitHub Actions
+- ✅ CI test badge - GitHub Actions workflow added (Phase 13), no MySQL/Redis services needed since phpunit.xml uses SQLite in-memory and Bus::fake()
 
-### ⬜ Docker & Deployment
+### ✅ Docker & Deployment
 
-- `Dockerfile`, `docker-compose.yml`
-- GitHub Actions CI/CD pipeline
-- `.env.example` fully documented
-- Sentry error tracking integration
-- VPS deployment guide
+- `Dockerfile` - php:8.4-fpm, all required extensions, entrypoint re-applies storage permissions on every container boot
+- `docker-compose.yml` - 7 services (nginx, app, worker, horizon, chrome, mysql, redis), verified clean on full down/up cycle
+- GitHub Actions CI/CD pipeline - no MySQL/Redis services needed, phpunit.xml uses SQLite in-memory and feature tests use Bus::fake()
+- `.env.example` fully documented - secrets stripped, structural defaults preserved
+- Sentry error tracking integration - fully wired, only the DSN env var needs to be filled in
+- `PRODUCTION_CHECKLIST.md` - deployment guide covering environment, security, queue/Horizon, browser automation, drift detection, and final checks
 
 ### ⬜ Documentation
 
