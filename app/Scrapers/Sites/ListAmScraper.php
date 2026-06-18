@@ -64,7 +64,7 @@ class ListAmScraper extends BaseScraper
 
             $urls[] = str_starts_with($href, 'http')
                 ? $href
-                : $this->profile->getBaseUrl() . $href;
+                : $this->profile->getBaseUrl().$href;
         }
 
         return $urls;
@@ -269,7 +269,7 @@ class ListAmScraper extends BaseScraper
                 }
 
                 $urls[] = str_starts_with($src, '//')
-                    ? 'https:' . $src
+                    ? 'https:'.$src
                     : $src;
             }
 
