@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Events\ListingSaved;
 use App\Models\Listing;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,6 +18,12 @@ use Illuminate\Support\Facades\Cache;
  */
 class ListingRepository
 {
+    /**
+     * Create a brand new listing record.
+     *
+     * Rarely used directly - updateOrCreate() is the normal save path
+     * since it handles re-scrapes without creating duplicates.
+     */
     public function save(array $data): Listing
     {
         return Listing::create($data);
@@ -63,6 +70,29 @@ class ListingRepository
     }
 
     /**
+     * Paginated listings for a source, optionally filtered by
+     * district and/or a price range.
+     */
+    public function paginateBySource(string $source, array $filters = [], int $perPage = 50): LengthAwarePaginator
+    {
+        $query = Listing::where('source_profile_name', $source);
+
+        if (! empty($filters['district'])) {
+            $query->where('district', $filters['district']);
+        }
+
+        if (! empty($filters['min_price'])) {
+            $query->where('price', '>=', $filters['min_price']);
+        }
+
+        if (! empty($filters['max_price'])) {
+            $query->where('price', '<=', $filters['max_price']);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
      * Count total listings for a given source.
      *
      * Used by ScraperManager to record saved_listings count on run completion.
@@ -70,6 +100,28 @@ class ListingRepository
     public function countBySource(string $source): int
     {
         return Listing::where('source_profile_name', $source)->count();
+    }
+
+    /**
+     * Count listings saved by one specific scrape run.
+     *
+     * Used by ScrapeCompletedJob to report accurate per-run results,
+     * instead of the all-time total for the source.
+     */
+    public function countByRun(int $scraperRunId): int
+    {
+        return Listing::where('scraper_run_id', $scraperRunId)->count();
+    }
+
+    /**
+     * Retrieve all listings saved by one specific scrape run.
+     *
+     * Used by ExportManager so each export reflects only what
+     * this run collected, not the entire historical dataset.
+     */
+    public function findByRun(int $scraperRunId): Collection
+    {
+        return Listing::where('scraper_run_id', $scraperRunId)->get();
     }
 
     /**

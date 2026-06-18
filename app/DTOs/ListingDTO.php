@@ -23,6 +23,7 @@ final class ListingDTO
         public string $externalId,
         public string $url,
         public string $sourceProfileName,
+        public ?int $scraperRunId,
 
         public string $listingType,
         public string $propertyType,
@@ -69,6 +70,7 @@ final class ListingDTO
 
             listingType: $data['listing_type'],
             propertyType: $data['property_type'],
+            scraperRunId: $data['scraper_run_id'] ?? null,
 
             price: isset($data['price']) ? (float) $data['price'] : null,
             currency: $data['currency'] ?? null,
@@ -115,6 +117,7 @@ final class ListingDTO
             'external_id' => $this->externalId,
             'url' => $this->url,
             'source_profile_name' => $this->sourceProfileName,
+            'scraper_run_id' => $this->scraperRunId,
 
             'listing_type' => $this->listingType,
             'property_type' => $this->propertyType,

@@ -36,7 +36,7 @@ class ScrapeCompletedJob implements ShouldQueue
 
     public function handle(ScraperRunRepository $runRepository, ListingRepository $listingRepository, DriftDetector $driftDetector): void
     {
-        $listingCount = $listingRepository->countBySource($this->source);
+        $listingCount = $listingRepository->countByRun($this->scraperRunId);
 
         $runRepository->markAsCompleted(
             id: $this->scraperRunId,

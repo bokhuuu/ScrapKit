@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Log;
  */
 final class ScraperPipeline
 {
+    /**
+     * Takes the ordered list of pipeline stages to run every listing through.
+     */
     public function __construct(
         private readonly array $stages,
     ) {}

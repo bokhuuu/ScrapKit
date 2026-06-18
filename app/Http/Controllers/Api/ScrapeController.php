@@ -19,6 +19,10 @@ use Illuminate\Http\JsonResponse;
  */
 class ScrapeController extends Controller
 {
+    /**
+     * Takes the manager that runs/cancels scrapes and the repository
+     * used to look up run state.
+     */
     public function __construct(
         private readonly ScraperManager $manager,
         private readonly ScraperRunRepository $runRepository,

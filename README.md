@@ -115,29 +115,113 @@ Queue, pipeline, dedup, export, notifications - zero changes needed.
 
 ## Architecture
 
-Entry (artisan / API)
-└── ScraperManager
-└── Queue Jobs (parallel)
-└── BaseScraper (Dusk)
-└── Pipeline Stages
-└── ListingRepository → MySQL
-└── Events
-├── ScrapeCompleted → ExportManager + TelegramNotifier + MailNotifier
-├── ScrapeFailed → TelegramNotifier + MailNotifier
-└── ListingSaved → (future: webhooks, downstream sync)
-Pipeline (default):
-NormalizeStringFieldsStage → ValidateRequiredFieldsStage → CleanPriceStage
-→ CleanPhoneStage → CleanAreaStage → CalculatePricePerSqmStage
-→ CleanBuildingTypeStage → DeduplicateStage
+```mermaid
+flowchart TD
+    subgraph Entry["Entry Points"]
+        CLI["artisan scraper:run listam --pages=N"]
+        API_START["POST /api/scrape/start"]
+    end
 
-FilterCurrencyStage (profile-injected)
-EnrichDistrictStage (profile-injected)
+    subgraph Orchestration
+        SM["ScraperManager<br/>loads profile, creates ScraperRun,<br/>dispatches Bus::batch()"]
+    end
 
-Export (profile-driven):
-ExcelExporter → generic .xlsx
-CsvExporter → generic .csv
-JsonExporter → generic .json
-RealEstateMarketReport → 8-sheet client deliverable
+    subgraph Queue["Queue Jobs (Redis + Horizon, sole supervisor)"]
+        CIJ["CrawlIndexPageJob<br/>one per index page"]
+        CDJ["CrawlDetailPageJob<br/>one per listing — fresh browser per job"]
+        SCJ["ScrapeCompletedJob<br/>fires when batch completes"]
+    end
+
+    subgraph Browser["Browser Layer (Dusk)"]
+        BS["BaseScraper (abstract)<br/>profile-driven delay + jitter"]
+        LAS["ListAmScraper"]
+        BP["BrowserPool<br/>built + registered, DORMANT —<br/>not wired into any job<br/>(session reuse drops price field on list.am)"]
+    end
+
+    subgraph Pipeline["Processing Pipeline (ScraperPipeline orchestrator)"]
+        P1["NormalizeStringFieldsStage"]
+        P2["ValidateRequiredFieldsStage<br/>required fields from profile"]
+        P3["CleanPriceStage"]
+        P4["CleanPhoneStage"]
+        P5["CleanAreaStage"]
+        P6["CalculatePricePerSqmStage<br/>derived, after price+area clean"]
+        P7["CleanBuildingTypeStage"]
+        P8["DeduplicateStage<br/>URL-based, halts early"]
+        FC["FilterCurrencyStage<br/>profile-injected — listam: USD only"]
+        ED["EnrichDistrictStage<br/>profile-injected — real-estate specific"]
+    end
+
+    subgraph Storage
+        DTO["ListingDTO"]
+        REPO["ListingRepository"]
+        RUNREPO["ScraperRunRepository"]
+        DB[("MySQL")]
+    end
+
+    subgraph Events
+        LS["ListingSaved<br/>(future: webhooks, downstream sync)"]
+        SCMP["ScrapeCompleted"]
+        SF["ScrapeFailed"]
+    end
+
+    subgraph Notify["Notifiers"]
+        TG["TelegramNotifier"]
+        MAIL["MailNotifier"]
+    end
+
+    subgraph Export["Export Layer (profile-driven, ExportManager)"]
+        EX["ExcelExporter"]
+        CSV["CsvExporter"]
+        JSON["JsonExporter"]
+        REM["RealEstateMarketReport<br/>8-sheet client deliverable"]
+    end
+
+    subgraph API["API Layer (Sanctum auth, rate-limited)"]
+        API_STATUS["GET /api/scrape/status"]
+        API_CANCEL["POST /api/scrape/cancel"]
+        API_LIST["GET /api/listings"]
+        API_STATS["GET /api/listings/stats"]
+        API_HEALTH["GET /api/health"]
+        DRIFT["DriftDetector<br/>checks listing count + null rates"]
+    end
+
+    CLI --> SM
+    API_START --> SM
+    SM --> RUNREPO
+    SM --> CIJ
+    CIJ -->|batch->add| CDJ
+    CIJ --> LAS
+    CDJ --> LAS
+    LAS --- BS
+    BS -.dormant, not used.-> BP
+
+    LAS --> DTO
+    DTO --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8
+    P8 --> FC --> ED --> REPO --> DB
+    REPO --> LS
+
+    CDJ --> SCJ
+    SCJ --> RUNREPO
+    SCJ --> SCMP
+    DRIFT -->|count low / null rate high| SF
+
+    SCMP --> Export
+    SCMP --> TG
+    SCMP --> MAIL
+    SF --> TG
+    SF --> MAIL
+
+    Export --> EX
+    Export --> CSV
+    Export --> JSON
+    Export --> REM
+
+    API_STATUS --> RUNREPO
+    API_CANCEL --> SM
+    API_LIST --> REPO
+    API_STATS --> REPO
+    API_HEALTH --> DB
+```
 
 ---
 
@@ -168,7 +252,6 @@ Duplicate → pipeline halts early, job completes cleanly. No double inserts, no
 ScrapKit integrates with Laravel Scheduler for fully automated runs:
 
 ```php
-// Runs every night at 02:00
 $schedule->command('scraper:run listam --pages=100')->dailyAt('02:00');
 ```
 
@@ -328,7 +411,6 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ Unit tests for all pipeline stages - all 10 stages, 70 tests, 110 assertions total
 - ✅ Repository tests with SQLite in-memory - ListingRepository + ScraperRunRepository
 - ✅ Feature tests - ScraperManager, all 3 console commands, all API endpoints, ScraperPipeline
-- ⬜ Mock browser responses - deferred; browser layer untestable without ChromeDriver by design
 - ✅ CI test badge - GitHub Actions workflow added (Phase 13), no MySQL/Redis services needed since phpunit.xml uses SQLite in-memory and Bus::fake()
 
 ### ✅ Docker & Deployment
@@ -340,27 +422,10 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - Sentry error tracking integration - fully wired, only the DSN env var needs to be filled in
 - `PRODUCTION_CHECKLIST.md` - deployment guide covering environment, security, queue/Horizon, browser automation, drift detection, and final checks
 
-### ⬜ Documentation
+### ✅ Documentation
 
-- `CONTRIBUTING.md`
-- Architecture diagram (image)
-- Postman collection for all API endpoints
-
----
-
-## Client Deliverable
-
-| Task                                             | Status  |
-| ------------------------------------------------ | ------- |
-| Scrape apartments - list.am/category/60          | ✅ Done |
-| 8-sheet Excel report template built              | ✅ Done |
-| Scrape commercial for sale - list.am/category/56 | ⬜      |
-| Scrape commercial for rent - list.am/category/58 | ⬜      |
-| Data cleaning and normalization                  | ✅ Done |
-| District price per sqm analysis                  | ✅ Done |
-| Commercial availability report                   | ⬜      |
-| Final formatted Excel deliverable                | ⬜      |
-| PDF/PowerPoint summary report                    | ⬜      |
+- ✅ Architecture diagram - Mermaid diagram embedded directly in this README (GitHub renders it natively), not a static image
+- ✅ Postman collection for all API endpoints - collection + local environment in `/postman`, includes test scripts and run_id automation
 
 ---
 

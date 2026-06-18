@@ -15,6 +15,10 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class CleanBuildingTypeStage implements PipelineStageInterface
 {
+    /**
+     * Lowercases and tidies up the building type so the same type
+     * scraped with different casing or spacing groups together.
+     */
     public function handle(ListingDTO $dto): ListingDTO
     {
         $dto->buildingType = $this->cleanBuildingType($dto->buildingType);

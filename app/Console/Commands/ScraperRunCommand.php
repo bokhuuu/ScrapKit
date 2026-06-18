@@ -23,6 +23,10 @@ class ScraperRunCommand extends Command
 
     protected $description = 'Start a scrape run for the given source profile';
 
+    /**
+     * Resolves the named profile and kicks off a scrape run for it,
+     * dispatching the queue jobs and returning immediately.
+     */
     public function handle(ScraperManager $manager): int
     {
         $source = $this->argument('source');

@@ -16,11 +16,13 @@ class TelegramNotifier implements NotifierInterface
 {
     private Api $telegram;
 
+    /** Sets up the Telegram API client using the configured bot token. */
     public function __construct()
     {
-        $this->telegram = new Api(config('services.telegram.token'));
+        $this->telegram = app(Api::class, ['token' => config('services.telegram.token')]);
     }
 
+    /** Sends the built message to the configured Telegram chat. */
     public function notify(array $payload): void
     {
         $this->telegram->sendMessage([
@@ -29,6 +31,7 @@ class TelegramNotifier implements NotifierInterface
         ]);
     }
 
+    /** Turns the event payload into a short, readable Telegram message. */
     private function buildMessage(array $payload): string
     {
         $source = $payload['source'] ?? 'unknown';

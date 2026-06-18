@@ -30,6 +30,13 @@ class CrawlIndexPageJob implements ShouldQueue
 
     public int $timeout;
 
+    private int $concurrency;
+
+    /**
+     * Sets up the job with the profile, page number, and run ID,
+     * pulling retry/timeout/concurrency settings from the profile's
+     * queue config (falling back to the global defaults).
+     */
     public function __construct(
         private readonly ScraperProfileInterface $profile,
         private readonly int $page,
@@ -37,21 +44,31 @@ class CrawlIndexPageJob implements ShouldQueue
     ) {
         $config = $profile->getQueueConfig();
         $this->tries = $config['retry_times'] ?? config('scraper.default_retry_times');
-        $this->timeout = $config['timeout_s'] ?? config('scraper.default_timeout_s');
+        $this->timeout = $config['timeout'] ?? config('scraper.default_timeout_s');
+        $this->concurrency = $config['concurrency'] ?? config('scraper.default_concurrency');
     }
 
+    /**
+     * Rate-limits how many of this job can run at once per source,
+     * and applies backoff between retries.
+     */
     public function middleware(): array
     {
         return [
             new RateLimitedMiddleware(
                 source: $this->profile->getName(),
-                maxConcurrent: config('scraper.default_concurrency'),
+                maxConcurrent: $this->concurrency,
             ),
 
             new ThrottledRetryMiddleware,
         ];
     }
 
+    /**
+     * Crawls the index page for listing URLs, queues one detail job
+     * per URL into the same batch, then always closes the browser
+     * whether or not the crawl succeeded.
+     */
     public function handle(): void
     {
         $scraper = app($this->profile->getScraperClass(), [
@@ -79,6 +96,10 @@ class CrawlIndexPageJob implements ShouldQueue
         }
     }
 
+    /**
+     * Logs the failure with enough context to know which page and
+     * run it belongs to.
+     */
     public function failed(Throwable $exception): void
     {
         Log::error('CrawlIndexPageJob failed', [

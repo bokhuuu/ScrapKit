@@ -15,6 +15,10 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class CleanPriceStage implements PipelineStageInterface
 {
+    /**
+     * Strips currency symbols and formatting from the price so it's
+     * stored as a clean number instead of raw scraped text.
+     */
     public function handle(ListingDTO $dto): ListingDTO
     {
         $dto->price = $this->cleanPrice($dto->price);

@@ -24,7 +24,7 @@ final class DeduplicateStage implements PipelineStageInterface
 
     public function handle(ListingDTO $dto): ListingDTO
     {
-        if ($this->repository->existsByExternalId($dto->sourceProfileName, $dto->externalId)) {
+        if ($this->repository->existsByExternalId($dto->externalId, $dto->sourceProfileName)) {
             throw new DuplicateListingException(
                 "Listing '{$dto->externalId}' from '{$dto->sourceProfileName}' already exists."
             );

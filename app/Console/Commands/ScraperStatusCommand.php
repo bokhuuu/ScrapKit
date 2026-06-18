@@ -20,6 +20,9 @@ class ScraperStatusCommand extends Command
 
     protected $description = 'Show the latest scraper run status for a given source';
 
+    /**
+     * Looks up and prints the most recent run for the given source.
+     */
     public function handle(ScraperRunRepository $repository): int
     {
         $source = $this->argument('source');

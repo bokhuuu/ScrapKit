@@ -21,6 +21,10 @@ class RateLimitedMiddleware
         private readonly int $maxConcurrent,
     ) {}
 
+    /**
+     * Lets the job through if under the concurrency limit for this source,
+     * otherwise releases it back to the queue to try again shortly.
+     */
     public function handle(mixed $job, Closure $next): void
     {
         Redis::throttle("scraper:{$this->source}")

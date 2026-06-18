@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
  * Fires if a scrape batch fails.
  *
  * Carries the run ID, source name and error itself.
- * Listeners use this to notify about error.
+ * Listeners use this to notify about the error.
  */
 class ScrapeFailed
 {

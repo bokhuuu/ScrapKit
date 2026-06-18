@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Log;
  */
 class ExportManager
 {
+    /**
+     * Takes the repository used to fetch the listings that need exporting.
+     */
     public function __construct(
         private readonly ListingRepository $repository,
     ) {}
@@ -36,7 +39,7 @@ class ExportManager
         $profileClass = config('scraper.profiles.'.$source);
         $profile = app($profileClass);
 
-        $listings = $this->repository->findBySource($source);
+        $listings = $this->repository->findByRun($scraperRunId);
 
         if ($listings->isEmpty()) {
             Log::warning('ExportManager: no listings found for run.', [

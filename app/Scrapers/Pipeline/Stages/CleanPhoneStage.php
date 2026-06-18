@@ -15,6 +15,10 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class CleanPhoneStage implements PipelineStageInterface
 {
+    /**
+     * Strips everything except digits from the phone number so it's
+     * stored consistently regardless of how the site formatted it.
+     */
     public function handle(ListingDTO $dto): ListingDTO
     {
         $dto->phone = $this->cleanPhone($dto->phone);

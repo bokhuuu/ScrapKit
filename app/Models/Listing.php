@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 class Listing extends Model
 {
     protected $fillable = [
+        'scraper_run_id',
         'external_id',
         'source_profile_name',
         'url',

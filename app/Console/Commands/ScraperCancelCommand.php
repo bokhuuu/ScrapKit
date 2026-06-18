@@ -21,6 +21,10 @@ class ScraperCancelCommand extends Command
 
     protected $description = 'Cancel an active scrape run by its ID';
 
+    /**
+     * Cancels the run if it's still active, or tells you it's
+     * already finished if there's nothing left to cancel.
+     */
     public function handle(ScraperManager $manager, ScraperRunRepository $repository): int
     {
         $runId = (int) $this->argument('run_id');

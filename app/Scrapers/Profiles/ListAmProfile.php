@@ -22,18 +22,28 @@ use Laravel\Dusk\Browser;
  */
 class ListAmProfile extends AbstractScraperProfile
 {
+    /**
+     * The short name list.am is registered under everywhere - config, queue jobs,
+     * the database and CLI commands all refer to this site by this name.
+     */
     public function getName(): string
     {
         return 'listam';
     }
 
+    /**
+     * The root web address for list.am, used to build full page URLs and to
+     * know which site a browser session belongs to.
+     */
     public function getBaseUrl(): string
     {
         return 'https://www.list.am';
     }
 
     /**
-     * list.am uses path-based pagination: /category/60/1, /category/60/2
+     * The URL pattern for one page of listings, with {page} swapped in by
+     * buildIndexUrl(). The long query string isn't part of pagination - it's
+     * the filter that restricts results to Yerevan only.
      */
     public function getIndexUrlPattern(): string
     {
@@ -64,7 +74,6 @@ class ListAmProfile extends AbstractScraperProfile
     public function getDetailSelectors(): array
     {
         return [
-            // CSS selectors
             'price' => 'span[itemprop="price"]',
             'currency' => 'meta[itemprop="priceCurrency"]',
             'location' => '#poi-map-anchor',
@@ -141,15 +150,16 @@ class ListAmProfile extends AbstractScraperProfile
     }
 
     /**
-     * Extends the default pipeline with district enrichment.
-     * EnrichDistrictStage is real estate specific — not part of the default pipeline.
+     * Adds two list.am-specific steps to the end of the standard pipeline:
+     * one that drops any listing not priced in USD and one that works out
+     * which Yerevan district a listing belongs to.
      */
     public function getPipelineStages(): array
     {
         return [
             ...parent::getPipelineStages(),
-            new FilterCurrencyStage(['USD']),
-            new EnrichDistrictStage($this->getDistricts()),
+            app(FilterCurrencyStage::class, ['acceptedCurrencies' => ['USD']]),
+            app(EnrichDistrictStage::class, ['districts' => $this->getDistricts()]),
         ];
     }
 
@@ -206,23 +216,23 @@ class ListAmProfile extends AbstractScraperProfile
             return null;
         }
 
-        $formLogin = new FormLoginStrategy(
-            browser: $browser,
-            loginUrl: 'https://www.list.am/en/user/login',
-            emailSelector: 'input[name="username"]',
-            passwordSelector: 'input[name="password"]',
-            submitSelector: 'button[type="submit"]',
-            successSelector: 'a.logout',
-            email: config('scraper.profile_config.listam.auth.email'),
-            password: config('scraper.profile_config.listam.auth.password'),
-        );
+        $formLogin = app(FormLoginStrategy::class, [
+            'browser' => $browser,
+            'loginUrl' => 'https://www.list.am/en/user/login',
+            'emailSelector' => 'input[name="username"]',
+            'passwordSelector' => 'input[name="password"]',
+            'submitSelector' => 'button[type="submit"]',
+            'successSelector' => 'a.logout',
+            'email' => config('scraper.profile_config.listam.auth.email'),
+            'password' => config('scraper.profile_config.listam.auth.password'),
+        ]);
 
-        return new CookieAuthStrategy(
-            browser: $browser,
-            profileName: $this->getName(),
-            baseUrl: $this->getBaseUrl(),
-            authCheckSelector: 'a.logout',
-            loginStrategy: $formLogin,
-        );
+        return app(CookieAuthStrategy::class, [
+            'browser' => $browser,
+            'profileName' => $this->getName(),
+            'baseUrl' => $this->getBaseUrl(),
+            'authCheckSelector' => 'a.logout',
+            'loginStrategy' => $formLogin,
+        ]);
     }
 }

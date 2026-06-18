@@ -125,7 +125,6 @@ class BrowserPool
             try {
                 $browser->quit();
             } catch (Throwable) {
-                // Already closed - nothing to do.
             }
         }
 

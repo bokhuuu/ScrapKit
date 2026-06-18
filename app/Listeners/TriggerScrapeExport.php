@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
  */
 class TriggerScrapeExport
 {
+    /** Takes the export manager used to actually generate the export files. */
     public function __construct(
         private readonly ExportManager $exportManager,
     ) {}

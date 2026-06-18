@@ -185,7 +185,8 @@ abstract class BaseScraper
     }
 
     /**
-     * Click an element and wait for the page to respond.
+     * Click an element. Does not wait afterward - pair with waitFor()
+     * or waitForText() if the click triggers something to load.
      */
     protected function click(string $selector): void
     {
@@ -317,6 +318,10 @@ abstract class BaseScraper
         usleep(random_int($base - $jitter, $base + $jitter) * 1000);
     }
 
+    /**
+     * Expose the underlying Dusk browser instance for direct interaction
+     * when none of the wrapper methods above fit (e.g. auth strategies).
+     */
     public function getBrowser(): Browser
     {
         return $this->browser;

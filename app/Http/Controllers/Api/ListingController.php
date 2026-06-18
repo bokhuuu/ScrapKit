@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Listing;
 use App\Repositories\ListingRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +17,9 @@ use Illuminate\Http\Request;
  */
 class ListingController extends Controller
 {
+    /**
+     * Takes the repository used for all listing data access.
+     */
     public function __construct(
         private readonly ListingRepository $listingRepository,
     ) {}
@@ -29,21 +31,11 @@ class ListingController extends Controller
     {
         $source = $request->query('source', 'listam');
 
-        $query = Listing::where('source_profile_name', $source);
-
-        if ($request->filled('district')) {
-            $query->where('district', $request->query('district'));
-        }
-
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->query('min_price'));
-        }
-
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->query('max_price'));
-        }
-
-        $listings = $query->paginate(50);
+        $listings = $this->listingRepository->paginateBySource($source, [
+            'district' => $request->query('district'),
+            'min_price' => $request->query('min_price'),
+            'max_price' => $request->query('max_price'),
+        ]);
 
         return response()->json($listings);
     }

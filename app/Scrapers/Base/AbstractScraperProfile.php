@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Scrapers\Base;
 
-use App\Repositories\ListingRepository;
 use App\Scrapers\Auth\Contracts\AuthStrategyInterface;
 use App\Scrapers\Contracts\ScraperProfileInterface;
 use App\Scrapers\Notifications\TelegramNotifier;
@@ -113,14 +112,14 @@ abstract class AbstractScraperProfile implements ScraperProfileInterface
     public function getPipelineStages(): array
     {
         return [
-            new NormalizeStringFieldsStage,
-            new ValidateRequiredFieldsStage($this->getRequiredFields()),
-            new CleanPriceStage,
-            new CleanPhoneStage,
-            new CleanAreaStage,
-            new CalculatePricePerSqmStage,
-            new CleanBuildingTypeStage,
-            new DeduplicateStage(new ListingRepository),
+            app(NormalizeStringFieldsStage::class),
+            app(ValidateRequiredFieldsStage::class, ['requiredFields' => $this->getRequiredFields()]),
+            app(CleanPriceStage::class),
+            app(CleanPhoneStage::class),
+            app(CleanAreaStage::class),
+            app(CalculatePricePerSqmStage::class),
+            app(CleanBuildingTypeStage::class),
+            app(DeduplicateStage::class),
 
         ];
     }

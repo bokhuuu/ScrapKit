@@ -4,16 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Events\ScrapeCompleted;
-use App\Events\ScrapeFailed;
-use App\Listeners\SendScrapeCompletedNotification;
-use App\Listeners\SendScrapeFailedNotification;
-use App\Listeners\TriggerScrapeExport;
 use App\Scrapers\Browser\BrowserPool;
 use App\Scrapers\Browser\ProxyResolver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -56,9 +50,5 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(config('scraper.api_per_token_limit', 30))
                 ->by($request->user()?->id ?: $request->ip());
         });
-
-        Event::listen(ScrapeCompleted::class, SendScrapeCompletedNotification::class);
-        Event::listen(ScrapeFailed::class, SendScrapeFailedNotification::class);
-        Event::listen(ScrapeCompleted::class, TriggerScrapeExport::class);
     }
 }

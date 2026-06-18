@@ -54,7 +54,7 @@ services:
     image: mysql:8.0
     environment:
       - MYSQL_DATABASE=scrapkit
-      - MYSQL_ROOT_PASSWORD=root535455
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     ports:

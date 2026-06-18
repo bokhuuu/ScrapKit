@@ -23,6 +23,10 @@ use Throwable;
  */
 class ListAmScraper extends BaseScraper
 {
+    /**
+     * Wires up the profile, proxy resolver and optional browser instance
+     * needed for crawling list.am.
+     */
     public function __construct(
         ScraperProfileInterface $profile,
         ProxyResolver $proxyResolver,
@@ -31,6 +35,10 @@ class ListAmScraper extends BaseScraper
         parent::__construct($profile, $proxyResolver, $browser);
     }
 
+    /**
+     * Adds list.am-specific stealth flags on top of the base Chrome arguments,
+     * to reduce the chance of being detected as a bot.
+     */
     protected function chromeArguments(): array
     {
         return [
@@ -195,6 +203,11 @@ class ListAmScraper extends BaseScraper
         }
     }
 
+    /**
+     * Reveals and reads the phone number behind the "Call" button.
+     * Requires an authenticated session - returns null if the button
+     * isn't present or anything goes wrong while revealing it.
+     */
     private function extractPhone(array $selectors): ?string
     {
         try {

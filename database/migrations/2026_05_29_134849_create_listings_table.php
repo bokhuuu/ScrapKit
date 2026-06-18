@@ -20,6 +20,8 @@ return new class extends Migration
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
 
+            $table->unsignedBigInteger('scraper_run_id')->nullable();
+
             // Identity
             $table->string('external_id');
             $table->string('source_profile_name');
@@ -69,6 +71,7 @@ return new class extends Migration
             $table->index('listing_type');
             $table->index('property_type');
             $table->index('scraped_at');
+            $table->index('scraper_run_id');
         });
     }
 

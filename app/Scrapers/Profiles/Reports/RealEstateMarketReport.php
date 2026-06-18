@@ -59,6 +59,9 @@ class RealEstateMarketReport implements ExporterInterface
         return storage_path('app/'.$path);
     }
 
+    /**
+     * The file extension this exporter produces.
+     */
     public function extension(): string
     {
         return 'xlsx';

@@ -16,6 +16,11 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class NormalizeStringFieldsStage implements PipelineStageInterface
 {
+    /**
+     * Cleans up every string field on the DTO so later stages can
+     * trust that a field is either real text or null, never blank
+     * or padded with stray whitespace.
+     */
     public function handle(ListingDTO $dto): ListingDTO
     {
         $dto->sourceProfileName = trim($dto->sourceProfileName);

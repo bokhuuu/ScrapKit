@@ -9,7 +9,7 @@ use App\Scrapers\Pipeline\Stages\DeduplicateStage;
 test('it passes through when listing does not exist', function () {
     $repository = Mockery::mock(ListingRepository::class);
     $repository->shouldReceive('existsByExternalId')
-        ->with('listam', 'test-123')
+        ->with('test-123', 'listam')
         ->andReturn(false);
 
     $stage = new DeduplicateStage($repository);
@@ -23,7 +23,7 @@ test('it passes through when listing does not exist', function () {
 test('it throws when listing already exists', function () {
     $repository = Mockery::mock(ListingRepository::class);
     $repository->shouldReceive('existsByExternalId')
-        ->with('listam', 'test-123')
+        ->with('test-123', 'listam')
         ->andReturn(true);
 
     $stage = new DeduplicateStage($repository);

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
  */
 class MailNotifier implements NotifierInterface
 {
+    /** Sends the built message as a plain-text email to the configured address. */
     public function notify(array $payload): void
     {
         $to = config('services.mail.scraper_to');
@@ -28,6 +29,7 @@ class MailNotifier implements NotifierInterface
         );
     }
 
+    /** Turns the event payload into a readable plain-text email body. */
     private function buildMessage(array $payload): string
     {
         $source = $payload['source'] ?? 'unknown';

@@ -15,6 +15,10 @@ use App\Scrapers\Pipeline\PipelineStageInterface;
  */
 final class CleanAreaStage implements PipelineStageInterface
 {
+    /**
+     * Strips unit symbols from the area so it's stored as a clean
+     * number instead of raw scraped text.
+     */
     public function handle(ListingDTO $dto): ListingDTO
     {
         $dto->area = $this->cleanArea($dto->area);

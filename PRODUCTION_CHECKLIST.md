@@ -23,6 +23,7 @@ be confirmed before the application runs against real targets in production.
 
 - [ ] Database user has only the permissions it needs (avoid using root in production where possible)
 - [ ] `DB_PASSWORD` is a strong random password
+- [ ] Root-level `.env` (next to `docker-compose.yml`, separate from the Laravel `.env` mounted into containers) contains `DB_PASSWORD` - this is what `MYSQL_ROOT_PASSWORD` substitutes from via `${DB_PASSWORD}`; confirm it's set there and not hardcoded directly in `docker-compose.yml`
 - [ ] Migrations have been run - `docker compose exec app php artisan migrate --force`
 - [ ] The `mysql_data` Docker volume is backed up regularly (daily minimum)
 - [ ] MySQL's container port is not exposed to the public internet - firewall blocks it or remove the host port mapping entirely if no external access is needed
@@ -55,7 +56,7 @@ be confirmed before the application runs against real targets in production.
 ## Telegram Notifications
 
 - [ ] `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are real production values
-- [ ] Test notification fires correctly - trigger a `ScrapeCompleted` or `ScrapeFailed` event manually and confirm the message arrives
+- [ ] Test notification fires correctly - trigger a `ScrapeCompleted` or `ScrapeFailed` event manually and confirm the message arrives exactly once (not twice - see SCRAPKIT.md's note on Laravel auto-discovery vs explicit Event::listen() registration)
 
 ---
 
@@ -75,7 +76,7 @@ be confirmed before the application runs against real targets in production.
 ## Browser Automation
 
 - [ ] `chrome` (selenium/standalone-chrome) container is running - `docker compose ps`
-- [ ] `shm_size: 2gb` is set on the `chrome` service - prevents Chrome crashes under load
+- [ ] `shm_size: 4gb` is set on the `chrome` service - prevents Chrome crashes under load
 - [ ] `BROWSER_POOL_SIZE` is sized to the production server's available RAM (~150-200MB per browser instance)
 - [ ] A test scrape run completes end-to-end against the production stack - `docker compose exec app php artisan scraper:run listam --pages=1`
 - [ ] Stealth config (`SCRAPER_USER_AGENT`, `SCRAPER_BROWSER_LANGUAGES`) is current and not flagged by the target site
@@ -94,7 +95,7 @@ be confirmed before the application runs against real targets in production.
 
 - [ ] Storage directory permissions are correct inside the container - `entrypoint.sh` re-applies this automatically on every boot, confirm it ran without error in container logs
 - [ ] `storage/app/exports` persists across container restarts (verify it's not relying on the container's writable layer alone - mount as a volume if exports must survive a rebuild)
-- [ ] A test export runs successfully for each configured format (excel, csv, json, real_estate_report)
+- [ ] A test export runs successfully for each configured format (excel, csv, json, real_estate_report) and contains only the current run's listings, not the entire historical table
 
 ---
 
@@ -130,3 +131,4 @@ be confirmed before the application runs against real targets in production.
 - [ ] Run the full Pest test suite one final time - `docker compose exec app php artisan test`
 - [ ] Check the `/horizon` dashboard is reachable only by intended users
 - [ ] Confirm all six containers restart cleanly after a host reboot - `sudo reboot`, then `docker compose ps`
+- [ ] If `migrate:fresh` has been run at any point against this environment, confirm all Sanctum tokens for consuming projects (LaraKit, LaraAI, etc.) are still valid and regenerate if not
