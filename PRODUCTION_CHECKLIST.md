@@ -1,9 +1,9 @@
 # Production Checklist
 
 Run through this checklist before going live with ScrapKit.
-ScrapKit ships as a Docker stack (`docker-compose.yml` - nginx, app, worker,
-horizon, chrome, mysql, redis). Every item must be confirmed before the
-application runs against real targets in production.
+ScrapKit ships as a Docker stack (`docker-compose.yml` - nginx, app, horizon,
+chrome, mysql, redis). Horizon is the sole queue supervisor. Every item must
+be confirmed before the application runs against real targets in production.
 
 ---
 
@@ -64,7 +64,7 @@ application runs against real targets in production.
 - [ ] `QUEUE_CONNECTION=redis`
 - [ ] `REDIS_HOST=redis` (the Docker service name, not localhost or an IP)
 - [ ] The `horizon` container is running - `docker compose ps`
-- [ ] `restart: unless-stopped` is set on the `app`, `worker`, and `horizon` services so they survive crashes and reboots
+- [ ] `restart: unless-stopped` is set on the `app` and `horizon` services so they survive crashes and reboots
 - [ ] `docker compose exec app php artisan horizon:status` returns `running`
 - [ ] Failed jobs are monitored - check `/horizon` dashboard
 - [ ] `HorizonServiceProvider` gate restricts dashboard access appropriately for production (not `app()->environment('local')`)
@@ -129,4 +129,4 @@ application runs against real targets in production.
 - [ ] API rate limiting is active - confirm `API_RATE_LIMIT` and `API_PER_TOKEN_LIMIT` behave as expected under test load
 - [ ] Run the full Pest test suite one final time - `docker compose exec app php artisan test`
 - [ ] Check the `/horizon` dashboard is reachable only by intended users
-- [ ] Confirm all seven containers restart cleanly after a host reboot - `sudo reboot`, then `docker compose ps`
+- [ ] Confirm all six containers restart cleanly after a host reboot - `sudo reboot`, then `docker compose ps`
