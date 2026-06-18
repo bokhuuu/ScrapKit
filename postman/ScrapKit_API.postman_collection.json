@@ -1,0 +1,470 @@
+{
+  "info": {
+    "name": "ScrapKit API",
+    "description": "API control surface for ScrapKit. All routes except /health require a Sanctum bearer token and are subject to per-token rate limiting (throttle:api.per_token). Set {{base_url}} and {{api_token}} in the collection variables before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{api_token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8001/api", "type": "string", "description": "Fallback only - select the 'ScrapKit - Local' or 'ScrapKit - Production' environment to override." },
+    { "key": "api_token", "value": "", "type": "string", "description": "Fallback only - set the real Sanctum token in your selected environment, not here. Generate one per consuming project (LaraKit, LaraAI, etc.) - do not share broadly." },
+    { "key": "run_id", "value": "", "type": "string", "description": "Auto-filled by the Start Scrape request's test script after a successful run - no need to set manually." }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "No authentication required - this route sits outside the auth:sanctum middleware group. Checks database, Redis (via Cache), and queue connectivity independently; one failing service does not block the others from reporting. Returns 503 if any check fails, 200 if all pass.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 200 or 503', function () {",
+                    "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 - all services healthy",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/health",
+                  "host": ["{{base_url}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"ok\",\n  \"checks\": {\n    \"database\": \"ok\",\n    \"redis\": \"ok\",\n    \"queue\": \"ok\"\n  }\n}"
+            },
+            {
+              "name": "503 - one or more services degraded",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/health",
+                  "host": ["{{base_url}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"degraded\",\n  \"checks\": {\n    \"database\": \"ok\",\n    \"redis\": \"error\",\n    \"queue\": \"ok\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scrape Control",
+      "item": [
+        {
+          "name": "Start Scrape",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scrape/start",
+              "host": ["{{base_url}}"],
+              "path": ["scrape", "start"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"listam\",\n  \"pages\": 50\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Starts an async scrape run via ScraperManager and returns immediately - scraping happens in the queue. Validated by StartScrapeRequest:\n- source: required, string, must be a key registered in config('scraper.profiles') (e.g. 'listam')\n- pages: optional, integer, 1-500. Omit to use the profile's own getMaxPages() default.\n\nResponds 202 Accepted with the newly created run_id. On success, the test script below saves that run_id into the active environment so Get Scrape Status and Cancel Scrape pick it up automatically via {{run_id}}.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 202', function () {",
+                    "    pm.response.to.have.status(202);",
+                    "});",
+                    "",
+                    "if (pm.response.code === 202) {",
+                    "    const body = pm.response.json();",
+                    "    pm.environment.set('run_id', body.run_id);",
+                    "}"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "202 - scrape started",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scrape/start",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "start"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"source\": \"listam\",\n  \"pages\": 50\n}",
+                  "options": { "raw": { "language": "json" } }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Scrape started.\",\n  \"run_id\": 39,\n  \"source\": \"listam\",\n  \"pages\": 50\n}"
+            },
+            {
+              "name": "422 - validation failed (invalid source)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scrape/start",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "start"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"source\": \"not-a-real-source\",\n  \"pages\": 50\n}",
+                  "options": { "raw": { "language": "json" } }
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The selected source is invalid.\",\n  \"errors\": {\n    \"source\": [\"The selected source is invalid.\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Scrape Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scrape/status?source=listam",
+              "host": ["{{base_url}}"],
+              "path": ["scrape", "status"],
+              "query": [
+                { "key": "source", "value": "listam", "description": "Not validated by a FormRequest - this is a plain query() read in the controller. Passing no source will look up the latest run for a null source, which will not match anything; always pass it explicitly." }
+              ]
+            },
+            "description": "Returns the latest ScraperRun for the given source - state, timestamps, and (once the batch completes) scraped_pages/saved_listings.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 200 or 404', function () {",
+                    "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 - run found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scrape/status?source=listam",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "status"],
+                  "query": [
+                    { "key": "source", "value": "listam" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"run_id\": 38,\n  \"source\": \"listam\",\n  \"state\": \"completed\",\n  \"started_at\": \"2026-06-17T02:00:01.000000Z\",\n  \"finished_at\": \"2026-06-17T02:14:22.000000Z\",\n  \"scraped_pages\": 2,\n  \"saved_listings\": 1003\n}"
+            },
+            {
+              "name": "404 - no runs for this source",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scrape/status?source=listam",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "status"],
+                  "query": [
+                    { "key": "source", "value": "listam" }
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"No runs found for this source.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel Scrape",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scrape/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["scrape", "cancel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"run_id\": {{run_id}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Cancels an active run by ID. Validated by CancelScrapeRequest:\n- run_id: required, integer, must exist in scraper_runs table.\n\nScraperManager guards against cancelling a run already in a terminal state (completed/failed) - check /scrape/status first if unsure.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 200 or 422', function () {",
+                    "    pm.expect(pm.response.code).to.be.oneOf([200, 422]);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 - run cancelled",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scrape/cancel",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "cancel"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"run_id\": 39\n}",
+                  "options": { "raw": { "language": "json" } }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Scrape run cancelled.\",\n  \"run_id\": 39,\n  \"source\": \"listam\"\n}"
+            },
+            {
+              "name": "422 - run_id does not exist",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scrape/cancel",
+                  "host": ["{{base_url}}"],
+                  "path": ["scrape", "cancel"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"run_id\": 999999\n}",
+                  "options": { "raw": { "language": "json" } }
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"The selected run id is invalid.\",\n  \"errors\": {\n    \"run_id\": [\"The selected run id is invalid.\"]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Listings",
+      "item": [
+        {
+          "name": "List Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/listings?source=listam&district=Kentron&min_price=50000&max_price=150000&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["listings"],
+              "query": [
+                { "key": "source", "value": "listam", "description": "Defaults to 'listam' if omitted." },
+                { "key": "district", "value": "Kentron", "description": "Optional exact-match filter." },
+                { "key": "min_price", "value": "50000", "description": "Optional, inclusive." },
+                { "key": "max_price", "value": "150000", "description": "Optional, inclusive." },
+                { "key": "page", "value": "1", "description": "Standard Laravel paginate() page param, 50 per page." }
+              ]
+            },
+            "description": "Paginated listings (50 per page) filtered by source/district/price range. Returns Laravel's standard paginator JSON shape. Note: the exact set of fields on each listing object below is illustrative - it has not yet been confirmed against the Listing model/migration in this thread.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 200', function () {",
+                    "    pm.response.to.have.status(200);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 - paginated listings (illustrative fields)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/listings?source=listam&district=Kentron&min_price=50000&max_price=150000&page=1",
+                  "host": ["{{base_url}}"],
+                  "path": ["listings"],
+                  "query": [
+                    { "key": "source", "value": "listam" },
+                    { "key": "district", "value": "Kentron" },
+                    { "key": "min_price", "value": "50000" },
+                    { "key": "max_price", "value": "150000" },
+                    { "key": "page", "value": "1" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"current_page\": 1,\n  \"data\": [\n    {\n      \"id\": 1042,\n      \"source_profile_name\": \"listam\",\n      \"external_id\": \"23661487\",\n      \"url\": \"https://www.list.am/en/item/23661487\",\n      \"price\": 95000,\n      \"district\": \"Kentron\",\n      \"area\": 78.5,\n      \"rooms\": 3\n    }\n  ],\n  \"first_page_url\": \"{{base_url}}/listings?page=1\",\n  \"from\": 1,\n  \"last_page\": 21,\n  \"per_page\": 50,\n  \"to\": 50,\n  \"total\": 1003\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listing Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/listings/stats?source=listam",
+              "host": ["{{base_url}}"],
+              "path": ["listings", "stats"],
+              "query": [
+                { "key": "source", "value": "listam", "description": "Defaults to 'listam' if omitted." }
+              ]
+            },
+            "description": "Average price per sqm grouped by district, via ListingRepository::getDistrictPriceStats(). Cached in Redis for 1 hour, so repeated calls within that window return the cached result.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status code is 200', function () {",
+                    "    pm.response.to.have.status(200);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 - district price stats (illustrative shape)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/listings/stats?source=listam",
+                  "host": ["{{base_url}}"],
+                  "path": ["listings", "stats"],
+                  "query": [
+                    { "key": "source", "value": "listam" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"source\": \"listam\",\n  \"data\": [\n    { \"district\": \"Kentron\", \"avg_price_per_sqm\": 1450.32, \"listing_count\": 212 },\n    { \"district\": \"Arabkir\", \"avg_price_per_sqm\": 980.10, \"listing_count\": 134 }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
