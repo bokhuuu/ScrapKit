@@ -61,12 +61,18 @@ class CrawlIndexPageJob implements ShouldQueue
         try {
             $urls = $scraper->crawlIndexPage($this->page);
 
+            $jobs = [];
+
             foreach ($urls as $url) {
-                CrawlDetailPageJob::dispatch(
+                $jobs[] = new CrawlDetailPageJob(
                     profile: $this->profile,
                     url: $url,
                     scraperRunId: $this->scraperRunId,
                 );
+            }
+
+            if (! empty($jobs) && $this->batch()) {
+                $this->batch()->add($jobs);
             }
         } finally {
             $scraper->closeBrowser();

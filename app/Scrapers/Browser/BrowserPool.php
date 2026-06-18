@@ -7,6 +7,7 @@ namespace App\Scrapers\Browser;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Illuminate\Support\Facades\Log;
 use Laravel\Dusk\Browser;
 use RuntimeException;
 use Throwable;
@@ -44,13 +45,31 @@ class BrowserPool
             return;
         }
 
-        for ($i = 0; $i < $this->size; $i++) {
-            $this->available[] = $this->createBrowser();
+        Log::warning('BrowserPool: initializing fresh pool', [
+            'size' => $this->size,
+            'pid' => getmypid(),
+            'object_id' => spl_object_id($this),
+        ]);
+
+        $i = 0;
+
+        try {
+            for ($i = 0; $i < $this->size; $i++) {
+                Log::info('BrowserPool: creating browser', ['index' => $i]);
+                $this->available[] = $this->createBrowser();
+                Log::info('BrowserPool: browser created', ['index' => $i]);
+            }
+
+            $this->initialized = true;
+        } catch (Throwable $e) {
+            Log::error('BrowserPool: initialize failed', [
+                'index_reached' => $i,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
         }
-
-        $this->initialized = true;
     }
-
     /**
      * Acquire a browser from the pool.
      *
@@ -65,14 +84,24 @@ class BrowserPool
 
         while (empty($this->available)) {
             if ($waited >= 30) {
+                Log::error('BrowserPool: timeout waiting for browser', [
+                    'available' => count($this->available),
+                    'pool_size' => $this->size,
+                ]);
                 throw new RuntimeException('BrowserPool: timed out waiting for available browser.');
             }
 
-            usleep(200_000); // 200ms
+            usleep(200_000);
             $waited += 0.2;
         }
 
-        return array_shift($this->available);
+        $browser = array_shift($this->available);
+        Log::info('BrowserPool: acquired', [
+            'remaining' => count($this->available),
+            'object_id' => spl_object_id($this),
+        ]);
+
+        return $browser;
     }
 
     /**
@@ -81,6 +110,7 @@ class BrowserPool
     public function release(Browser $browser): void
     {
         $this->available[] = $browser;
+        Log::info('BrowserPool: released', ['available' => count($this->available)]);
     }
 
     /**
@@ -113,7 +143,7 @@ class BrowserPool
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
-            '--window-size='.config('scraper.browser_window_size'),
+            '--window-size=' . config('scraper.browser_window_size'),
         ]);
 
         $capabilities = DesiredCapabilities::chrome();

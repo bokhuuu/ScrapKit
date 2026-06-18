@@ -25,22 +25,6 @@ services:
       - mysql
       - redis
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: php artisan queue:work --tries=3
-    volumes:
-      - .:/var/www/html
-      - ./.env:/var/www/html/.env
-    environment:
-      - DB_HOST=mysql
-      - REDIS_HOST=redis
-      - CHROMEDRIVER_URL=http://chrome:4444/wd/hub
-    depends_on:
-      - mysql
-      - redis
-
   horizon:
     build:
       context: .
@@ -61,7 +45,10 @@ services:
     image: selenium/standalone-chrome
     ports:
       - "4444:4444"
-    shm_size: 2gb
+    shm_size: 4gb
+    environment:
+      - SE_NODE_MAX_SESSIONS=3
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
 
   mysql:
     image: mysql:8.0

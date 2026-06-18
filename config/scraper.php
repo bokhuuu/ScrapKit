@@ -134,7 +134,7 @@ return [
     |
     */
 
-    'browser_pool_size' => (int) env('BROWSER_POOL_SIZE', 3),
+    'browser_pool_size' => (int) env('BROWSER_POOL_SIZE', 1),
 
     /*
     |--------------------------------------------------------------------------

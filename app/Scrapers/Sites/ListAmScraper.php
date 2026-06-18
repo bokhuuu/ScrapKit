@@ -64,7 +64,7 @@ class ListAmScraper extends BaseScraper
 
             $urls[] = str_starts_with($href, 'http')
                 ? $href
-                : $this->profile->getBaseUrl().$href;
+                : $this->profile->getBaseUrl() . $href;
         }
 
         return $urls;
@@ -173,6 +173,10 @@ class ListAmScraper extends BaseScraper
     private function extractPrice(array $selectors): ?string
     {
         try {
+            if (! $this->isPresent($selectors['price'])) {
+                return null;
+            }
+
             return $this->getAttribute($selectors['price'], 'content');
         } catch (Throwable) {
             return null;
@@ -265,7 +269,7 @@ class ListAmScraper extends BaseScraper
                 }
 
                 $urls[] = str_starts_with($src, '//')
-                    ? 'https:'.$src
+                    ? 'https:' . $src
                     : $src;
             }
 

@@ -72,7 +72,7 @@ Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 
 ## Performance
 
-> Redis active. BrowserPool wired and active. Benchmarks coming after first full production run.
+> Redis active. BrowserPool built and available but not currently wired into the detail-page pipeline - see Known Limitations. Benchmarks pending.
 
 | Mode                            | Expected throughput  |
 | ------------------------------- | -------------------- |
@@ -182,7 +182,7 @@ Configure in `app/Console/Kernel.php`. No cron setup needed beyond Laravel's sta
 - Failed queue jobs stored in `failed_jobs` table - inspectable and replayable
 - `ScraperRun` model tracks full lifecycle: `pending → running → completed / failed`
 - Telegram + email notification fired on `ScrapeFailed` and `ScrapeCompleted` events
-- Sentry error tracking wired — set SENTRY_LARAVEL_DSN in .env to activate
+- Sentry error tracking wired - set SENTRY_LARAVEL_DSN in .env to activate
 
 ---
 
@@ -254,7 +254,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - `StealthConfig` - ChromeDriver fingerprint hardening
 - `ListAmScraper` - verified selectors, label-based spec extraction, image URL collection
 - `config/scraper.php` - all settings configurable via `.env`
-- `BrowserPool` - in-process pool, reuses open browsers across jobs, no Redis session IDs
+- `BrowserPool` - in-process pool, correctly built and registered as a singleton, currently dormant (not wired into any job) - see Known Limitations
 
 ### ✅ Authentication
 
@@ -305,7 +305,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 - ✅ Rate limiting per domain (RateLimitedMiddleware active)
 - ✅ Cache scraped pages + price statistics
 - ✅ Laravel Horizon queue monitoring
-- ✅ `BrowserPool` - in-process pool, wired into CrawlDetailPageJob
+- ⬜ `BrowserPool` - built correctly, not currently wired into any job (see Known Limitations)
 - ✅ `ProxyResolver` - rotating proxy support
 
 ### ✅ API Layer
@@ -334,7 +334,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 ### ✅ Docker & Deployment
 
 - `Dockerfile` - php:8.4-fpm, all required extensions, entrypoint re-applies storage permissions on every container boot
-- `docker-compose.yml` - 7 services (nginx, app, worker, horizon, chrome, mysql, redis), verified clean on full down/up cycle
+- `docker-compose.yml` - 6 services (nginx, app, horizon, chrome, mysql, redis) - worker service removed, Horizon is the sole queue supervisor to prevent oversubscribing Selenium Grid sessions
 - GitHub Actions CI/CD pipeline - no MySQL/Redis services needed, phpunit.xml uses SQLite in-memory and feature tests use Bus::fake()
 - `.env.example` fully documented - secrets stripped, structural defaults preserved
 - Sentry error tracking integration - fully wired, only the DSN env var needs to be filled in
@@ -368,7 +368,7 @@ Activate by setting `SCRAPER_PROXY_ENABLED=true` with proxy list in `.env`.
 
 - Phone numbers on list.am require authenticated login - Dusk handles this but adds scrape time per listing
 - JavaScript-rendered pages require ChromeDriver - cannot use lightweight HTTP-only scraping for all sites
-- BrowserPool uses in-process browser reuse - each worker maintains its own pool, no cross-process sharing
+- BrowserPool is built and registered but not wired into CrawlDetailPageJob - reusing a browser across multiple list.am detail page navigations causes the site to stop serving the price field on the 2nd+ request within the same session. CrawlDetailPageJob uses fresh browser per job instead. BrowserPool remains available for future use where session reuse is safe (e.g. index page crawling, never tested for this issue).
 - ProxyResolver implemented - activate by setting SCRAPER_PROXY_ENABLED=true with proxy list in .env
 - Image galleries on list.am load lazily - only the first image captured per listing
 - list.am does not expose individual agency names on listing pages - agency vs owner split is tracked, specific agency identity is not
