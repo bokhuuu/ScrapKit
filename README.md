@@ -1,10 +1,5 @@
 # ScrapKit 🕷️
 
-![PHP](https://img.shields.io/badge/PHP-8.4-blue)
-![Laravel](https://img.shields.io/badge/Laravel-12-red)
-![License](https://img.shields.io/badge/license-MIT-green)
-![CI](https://github.com/bokhuuu/ScrapKit/actions/workflows/ci.yml/badge.svg)
-
 Universal Laravel scraping template - build once, reuse for any site.
 
 ---
@@ -77,7 +72,6 @@ Generated from 501 live Yerevan apartment listings. Contains 8 sheets:
 | Mode                            | Expected throughput  |
 | ------------------------------- | -------------------- |
 | Single browser, 3s delay        | ~800 listings/hour   |
-| BrowserPool parallel (Phase 10) | ~3,000 listings/hour |
 
 ---
 
