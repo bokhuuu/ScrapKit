@@ -112,4 +112,16 @@ interface ScraperProfileInterface
      * Replaces {page} placeholder in getIndexUrlPattern().
      */
     public function buildIndexUrl(int $page): string;
+
+    /**
+     * Deal type for listings from this profile: 'sale' or 'rent'.
+     * Replaces the value the scraper used to hardcode directly.
+     */
+    public function getListingType(): string;
+
+    /**
+     * Property type for listings from this profile: 'apartment', 'house', 'commercial', 'land', etc.
+     * Replaces the value the scraper used to hardcode directly.
+     */
+    public function getPropertyType(): string;
 }

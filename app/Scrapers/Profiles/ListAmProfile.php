@@ -235,4 +235,20 @@ class ListAmProfile extends AbstractScraperProfile
             'loginStrategy' => $formLogin,
         ]);
     }
+
+    /**
+     * list.am's apartments-for-sale category is sale listings only.
+     */
+    public function getListingType(): string
+    {
+        return 'sale';
+    }
+
+    /**
+     * list.am's category 60 is apartments specifically.
+     */
+    public function getPropertyType(): string
+    {
+        return 'apartment';
+    }
 }
